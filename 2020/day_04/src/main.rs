@@ -27,13 +27,13 @@ impl Passport {
     }
 
     fn is_valid(&self) -> bool {
-        self.ecl != "".to_owned()
-            && self.pid != "".to_owned()
+        self.ecl != *""
+            && self.pid != *""
             && self.eyr != 0
-            && self.hcl != "".to_owned()
+            && self.hcl != *""
             && self.byr != 0
             && self.iyr != 0
-            && self.hgt != "".to_owned()
+            && self.hgt != *""
     }
 }
 
@@ -58,17 +58,17 @@ fn test_part1() {
     assert_eq!(239, part1(get_data()));
 }
 
-fn get_passport(data: String) -> Vec<Passport> {
+fn get_passports(data: String) -> Vec<Passport> {
     let lines: Vec<&str> = data.split("\n\n").collect();
 
     let mut passports: Vec<Passport> = Vec::new();
     for line in lines.iter() {
         let line = line.replace("\n", " ");
         let parts = line.split_whitespace();
-        let mut passport = Passport::new();
 
+        let mut passport = Passport::new();
         for part in parts {
-            let mut field = part.split(":");
+            let mut field = part.split(':');
             let field_name = field.next().unwrap();
             let field_value = field.next().unwrap();
             match field_name {
@@ -92,10 +92,10 @@ fn get_passport(data: String) -> Vec<Passport> {
 
 fn get_data() -> Vec<Passport> {
     let data = fs::read_to_string("input.txt").expect("Cannot read the file input.txt");
-    get_passport(data)
+    get_passports(data)
 }
 
 fn _get_data_test() -> Vec<Passport> {
     let data = fs::read_to_string("test.txt").expect("Cannot read the file test.txt");
-    get_passport(data)
+    get_passports(data)
 }
