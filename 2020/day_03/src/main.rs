@@ -74,7 +74,7 @@ fn get_data() -> Vec<String> {
 
 fn _get_data_test() -> Vec<String> {
     fs::read_to_string("test.txt")
-        .expect("Cannot read the file input.txt")
+        .expect("Cannot read the file test.txt")
         .trim()
         .lines()
         .map(|line| line.to_owned())
