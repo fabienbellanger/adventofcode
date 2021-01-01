@@ -7,8 +7,8 @@
 -  [x] Day 02 : Go
 -  [x] Day 03 : Rust
 -  [x] Day 04 : Rust
--  [ ] Day 05 : Rust
--  [ ] Day 06 : 
+-  [x] Day 05 : Rust
+-  [ ] Day 06 : Rust
 -  [ ] Day 07 : 
 -  [ ] Day 08 : 
 -  [ ] Day 09 : 

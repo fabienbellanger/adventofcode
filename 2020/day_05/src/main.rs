@@ -2,13 +2,14 @@ use std::fs;
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data()));
+    println!("Part 2 result: {}", part2(get_data()));
 }
 
 fn part1(data: Vec<String>) -> usize {
     let mut max = 0;
 
     for pass in data {
-        let seat_id = get_seat_id(pass);
+        let seat_id = get_seat_id(&pass);
 
         if seat_id > max {
             max = seat_id;
@@ -18,7 +19,25 @@ fn part1(data: Vec<String>) -> usize {
     max
 }
 
-fn get_seat_id(pass: String) -> usize {
+fn part2(data: Vec<String>) -> usize {
+    let mut id = 0;
+
+    let mut seats_id: Vec<usize> = data.iter()
+        .map(|s| get_seat_id(s))
+        .collect();
+    seats_id.sort();
+
+    for i in 0..seats_id.len() - 1 {
+        if seats_id[i] !=  seats_id[i + 1] - 1 {
+            id = seats_id[i] + 1;
+            break;
+        }
+    }
+
+    id
+}
+
+fn get_seat_id(pass: &str) -> usize {
     // -------------------------------
     // F => "front"
     // B => "back"
@@ -94,14 +113,19 @@ fn _get_data_test() -> Vec<String> {
 
 #[test]
 fn test_get_seat_id() {
-    assert_eq!(357, get_seat_id(String::from("FBFBBFFRLR")));
-    assert_eq!(567, get_seat_id(String::from("BFFFBBFRRR")));
-    assert_eq!(119, get_seat_id(String::from("FFFBBBFRRR")));
-    assert_eq!(820, get_seat_id(String::from("BBFFBBFRLL")));
+    assert_eq!(357, get_seat_id("FBFBBFFRLR"));
+    assert_eq!(567, get_seat_id("BFFFBBFRRR"));
+    assert_eq!(119, get_seat_id("FFFBBBFRRR"));
+    assert_eq!(820, get_seat_id("BBFFBBFRLL"));
 }
 
 #[test]
 fn test_part1() {
     assert_eq!(820, part1(_get_data_test()));
     assert_eq!(858, part1(get_data()));
+}
+
+#[test]
+fn test_part2() {
+    assert_eq!(557, part2(get_data()));
 }
