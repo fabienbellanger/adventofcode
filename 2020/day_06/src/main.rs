@@ -13,11 +13,7 @@ fn part1(data: Vec<Vec<String>>) -> usize {
         let mut good_answsers: HashMap<char, usize> = HashMap::new();
         for person in group {
             for c in person.chars() {
-                let val = match good_answsers.get(&c) {
-                    Some(v) => *v + 1,
-                    None => 1,
-                };
-                good_answsers.insert(c, val);
+                good_answsers.insert(c, 1);
             }
         }
         result += good_answsers.len();
@@ -29,26 +25,35 @@ fn part1(data: Vec<Vec<String>>) -> usize {
 fn part2(data: Vec<Vec<String>>) -> usize {
     let mut result = 0;
     
-    // for group in data {
-    //     let mut good_answsers: HashMap<char, usize> = HashMap::new();
-    //     for person in group {
-    //         for c in person.chars() {
-    //             let val = match good_answsers.get(&c) {
-    //                 Some(v) => *v + 1,
-    //                 None => 1,
-    //             };
-    //             good_answsers.insert(c, val);
-    //         }
-    //     }
-    //     result += good_answsers.len();
-    // }
+    for group in data {
+        let mut good_answsers: HashMap<char, usize> = HashMap::new();
+        for person in &group {
+            for c in person.chars() {
+                let val = match good_answsers.get(&c) {
+                    Some(v) => *v + 1,
+                    None => 1,
+                };
+                good_answsers.insert(c, val);
+            }
+        }
+        
+        let mut good = 0;
+        let persons_number = group.len();
+        for (_, v) in &good_answsers {
+            if *v == persons_number {
+                good += 1;
+            }
+        }
+
+        result += good;
+    }
 
     result
 }
 
 fn get_groups(data: String) -> Vec<Vec<String>> {
     // Groups
-    let data: Vec<&str> = data.split("\n\n").collect();
+    let data: Vec<&str> = data.trim().split("\n\n").collect();
     
     // Persons
     let mut groups: Vec<Vec<String>> = Vec::new();
@@ -79,5 +84,5 @@ fn test_part1() {
 #[test]
 fn test_part2() {
     assert_eq!(6, part2(_get_data_test()));
-    // assert_eq!(6437, part1(get_data()));
+    assert_eq!(3229, part2(get_data()));
 }
