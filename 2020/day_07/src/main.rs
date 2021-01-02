@@ -9,8 +9,7 @@ fn part1(data: HashMap<String, HashMap<String, usize>>) -> usize {
     let mut result = 0;
 
     for (_bag, bags) in &data {
-        let found = find_shiny_gold(&data, bags);
-        if found{
+        if find_shiny_gold(&data, bags) {
             result += 1;
         }
     }
@@ -19,20 +18,17 @@ fn part1(data: HashMap<String, HashMap<String, usize>>) -> usize {
 }
 
 fn find_shiny_gold(data: &HashMap<String, HashMap<String, usize>>, bags: &HashMap<String, usize>) -> bool {
-    let mut found = false;
-
     if bags.contains_key("shiny gold") {
         return true;
     }
 
     for (b, _v) in bags {
-        found = find_shiny_gold(data, &data[b]);
-        if found {
-            return found;
+        if find_shiny_gold(data, &data[b]) {
+            return true;
         }
     }
 
-    found
+    false
 }
 
 fn get_bags(data: Vec<String>) -> HashMap<String, HashMap<String, usize>> {
@@ -58,7 +54,7 @@ fn get_bags(data: Vec<String>) -> HashMap<String, HashMap<String, usize>> {
             let parts_other: Vec<&str> = other_bags.split(", ").collect();
             
             for b in parts_other {
-                let mut parts_next = b.split(" ");
+                let mut parts_next = b.split_whitespace();
                 let val = parts_next.next().unwrap().parse().unwrap();
                 let mut bag_name = parts_next.next().unwrap().to_owned();
                 bag_name.push_str(" ");
