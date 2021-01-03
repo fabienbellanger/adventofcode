@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 
 #[derive(Debug)]
@@ -14,15 +15,52 @@ impl Instruction {
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data()));
-    // println!("Part 2 result: {}", part2(get_data()));
+    println!("Part 2 result: {}", part2(get_data()));
 }
 
-fn part1(data: Vec<Instruction>) -> usize {
-    let mut result = 0;
+fn part1(data: Vec<Instruction>) -> isize {
+    get_accumulator_1(data)
+}
 
-    dbg!(data);
+fn part2(data: Vec<Instruction>) -> isize {
+    0
+}
 
-    result
+fn get_accumulator_1(instructions: Vec<Instruction>) -> isize {
+    let mut used: HashMap<isize, usize> = HashMap::new();
+    let mut index: isize = 0;
+    let mut accumulator = 0;
+
+    loop {
+        if used.contains_key(&index) {
+            break;
+        }
+
+        used.insert(index, 0);
+
+        let instruction = instructions.get(index as usize);
+
+        match instruction {
+            Some(instruction) => {
+                match instruction.operation.as_str() {
+                    "nop" => {
+                        index += 1;
+                    }
+                    "acc" => {
+                        accumulator += instruction.value;
+                        index += 1;
+                    }
+                    "jmp" => {
+                        index += instruction.value;
+                    }
+                    _ => panic!("Operation not found"),
+                };
+            }
+            None => panic!("Instruction not found"),
+        };
+    }
+
+    accumulator
 }
 
 fn get_instructions(data: Vec<String>) -> Vec<Instruction> {
@@ -63,6 +101,12 @@ fn _get_data_test() -> Vec<Instruction> {
 
 #[test]
 fn test_part1() {
-    assert_eq!(4, part1(_get_data_test()));
-    assert_eq!(179, part1(get_data()));
+    assert_eq!(5, part1(_get_data_test()));
+    assert_eq!(1487, part1(get_data()));
+}
+
+#[test]
+fn test_part2() {
+    assert_eq!(8, part2(_get_data_test()));
+    // assert_eq!(1487, part2(get_data()));
 }
