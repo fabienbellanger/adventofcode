@@ -1,15 +1,18 @@
 use std::fs;
 use std::collections::HashMap;
 
+const SHINY_GOLD_BAG: &str = "shiny gold";
+
 fn main() {
     println!("Part 1 result: {}", part1(get_data()));
+    println!("Part 2 result: {}", part2(get_data()));
 }
 
 fn part1(data: HashMap<String, HashMap<String, usize>>) -> usize {
     let mut result = 0;
 
-    for (_bag, bags) in &data {
-        if find_shiny_gold(&data, bags) {
+    for (bag, _bags) in &data {
+        if find_shiny_gold(&data, bag) {
             result += 1;
         }
     }
@@ -17,18 +20,35 @@ fn part1(data: HashMap<String, HashMap<String, usize>>) -> usize {
     result
 }
 
-fn find_shiny_gold(data: &HashMap<String, HashMap<String, usize>>, bags: &HashMap<String, usize>) -> bool {
-    if bags.contains_key("shiny gold") {
-        return true;
+fn part2(data: HashMap<String, HashMap<String, usize>>) -> usize {
+    let mut result = 0;
+
+    let shiny_gold = data.get(SHINY_GOLD_BAG).unwrap();
+    for (bag, nb) in shiny_gold {
+        result += nb * count_shiny_gold(&data, &bag);
     }
 
-    for (b, _v) in bags {
-        if find_shiny_gold(data, &data[b]) {
+    result
+}
+
+fn find_shiny_gold(data: &HashMap<String, HashMap<String, usize>>, bag: &String) -> bool {
+    for (b, _) in data.get(bag).unwrap() {
+        if b == SHINY_GOLD_BAG || find_shiny_gold(data, b) {
             return true;
         }
     }
 
     false
+}
+
+fn count_shiny_gold(data: &HashMap<String, HashMap<String, usize>>, bag: &String) -> usize {
+    let mut s = 1;
+
+    for (b, v) in data.get(bag).unwrap() {
+        s += v * count_shiny_gold(data, b);
+    }
+
+    s
 }
 
 fn get_bags(data: Vec<String>) -> HashMap<String, HashMap<String, usize>> {
@@ -90,8 +110,25 @@ fn _get_data_test() -> HashMap<String, HashMap<String, usize>> {
     get_bags(data)
 }
 
+fn _get_data_test_2() -> HashMap<String, HashMap<String, usize>> {
+    let data = fs::read_to_string("test_2.txt").expect("Cannot read the file test_2.txt")
+        .trim()
+        .lines()
+        .map(|l| l.to_string())
+        .collect();
+
+    get_bags(data)
+}
+
 #[test]
 fn test_part1() {
     assert_eq!(4, part1(_get_data_test()));
     assert_eq!(179, part1(get_data()));
+}
+
+#[test]
+fn test_part2() {
+    assert_eq!(32, part2(_get_data_test()));
+    assert_eq!(126, part2(_get_data_test_2()));
+    assert_eq!(18925, part2(get_data()));
 }
