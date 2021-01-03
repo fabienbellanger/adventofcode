@@ -39,20 +39,15 @@ fn get_accumulator_1(instructions: Vec<Instruction>) -> isize {
         used.insert(index, 0);
 
         let instruction = instructions.get(index as usize);
-
         match instruction {
             Some(instruction) => {
                 match instruction.operation.as_str() {
-                    "nop" => {
-                        index += 1;
-                    }
+                    "nop" => index += 1,
                     "acc" => {
                         accumulator += instruction.value;
                         index += 1;
                     }
-                    "jmp" => {
-                        index += instruction.value;
-                    }
+                    "jmp" => index += instruction.value,
                     _ => panic!("Operation not found"),
                 };
             }
