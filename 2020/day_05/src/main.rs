@@ -22,13 +22,11 @@ fn part1(data: Vec<String>) -> usize {
 fn part2(data: Vec<String>) -> usize {
     let mut id = 0;
 
-    let mut seats_id: Vec<usize> = data.iter()
-        .map(|s| get_seat_id(s))
-        .collect();
-    seats_id.sort();
+    let mut seats_id: Vec<usize> = data.iter().map(|s| get_seat_id(s)).collect();
+    seats_id.sort_unstable();
 
     for i in 0..seats_id.len() - 1 {
-        if seats_id[i] !=  seats_id[i + 1] - 1 {
+        if seats_id[i] != seats_id[i + 1] - 1 {
             id = seats_id[i] + 1;
             break;
         }
@@ -67,7 +65,7 @@ fn get_seat_id(pass: &str) -> usize {
         if i < 7 {
             // Row
             middle = (min_row + max_row) / 2;
-            
+
             if c == 'F' {
                 // lower half
                 max_row = middle;
@@ -78,7 +76,7 @@ fn get_seat_id(pass: &str) -> usize {
         } else {
             // Column
             middle = (min_col + max_col) / 2;
-            
+
             if c == 'L' {
                 // lower half
                 max_col = middle;
@@ -87,7 +85,6 @@ fn get_seat_id(pass: &str) -> usize {
                 min_col = middle + 1;
             }
         }
-        // dbg!(i, c, middle, min_row, max_row, min_col, max_col);
     }
 
     min_row * 8 + max_col

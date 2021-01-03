@@ -1,5 +1,5 @@
-use std::fs;
 use std::collections::HashMap;
+use std::fs;
 
 const SHINY_GOLD_BAG: &str = "shiny gold";
 
@@ -11,7 +11,7 @@ fn main() {
 fn part1(data: HashMap<String, HashMap<String, usize>>) -> usize {
     let mut result = 0;
 
-    for (bag, _bags) in &data {
+    for bag in data.keys() {
         if find_shiny_gold(&data, bag) {
             result += 1;
         }
@@ -31,8 +31,8 @@ fn part2(data: HashMap<String, HashMap<String, usize>>) -> usize {
     result
 }
 
-fn find_shiny_gold(data: &HashMap<String, HashMap<String, usize>>, bag: &String) -> bool {
-    for (b, _) in data.get(bag).unwrap() {
+fn find_shiny_gold(data: &HashMap<String, HashMap<String, usize>>, bag: &str) -> bool {
+    for b in data.get(bag).unwrap().keys() {
         if b == SHINY_GOLD_BAG || find_shiny_gold(data, b) {
             return true;
         }
@@ -41,7 +41,7 @@ fn find_shiny_gold(data: &HashMap<String, HashMap<String, usize>>, bag: &String)
     false
 }
 
-fn count_shiny_gold(data: &HashMap<String, HashMap<String, usize>>, bag: &String) -> usize {
+fn count_shiny_gold(data: &HashMap<String, HashMap<String, usize>>, bag: &str) -> usize {
     let mut s = 1;
 
     for (b, v) in data.get(bag).unwrap() {
@@ -72,12 +72,12 @@ fn get_bags(data: Vec<String>) -> HashMap<String, HashMap<String, usize>> {
 
         if other_bags != "no other bags." {
             let parts_other: Vec<&str> = other_bags.split(", ").collect();
-            
+
             for b in parts_other {
                 let mut parts_next = b.split_whitespace();
                 let val = parts_next.next().unwrap().parse().unwrap();
                 let mut bag_name = parts_next.next().unwrap().to_owned();
-                bag_name.push_str(" ");
+                bag_name.push(' ');
                 bag_name.push_str(parts_next.next().unwrap());
 
                 next_bags.insert(bag_name, val);
@@ -91,7 +91,8 @@ fn get_bags(data: Vec<String>) -> HashMap<String, HashMap<String, usize>> {
 }
 
 fn get_data() -> HashMap<String, HashMap<String, usize>> {
-    let data = fs::read_to_string("input.txt").expect("Cannot read the file input.txt")
+    let data = fs::read_to_string("input.txt")
+        .expect("Cannot read the file input.txt")
         .trim()
         .lines()
         .map(|l| l.to_string())
@@ -101,7 +102,8 @@ fn get_data() -> HashMap<String, HashMap<String, usize>> {
 }
 
 fn _get_data_test() -> HashMap<String, HashMap<String, usize>> {
-    let data = fs::read_to_string("test.txt").expect("Cannot read the file test.txt")
+    let data = fs::read_to_string("test.txt")
+        .expect("Cannot read the file test.txt")
         .trim()
         .lines()
         .map(|l| l.to_string())
@@ -111,7 +113,8 @@ fn _get_data_test() -> HashMap<String, HashMap<String, usize>> {
 }
 
 fn _get_data_test_2() -> HashMap<String, HashMap<String, usize>> {
-    let data = fs::read_to_string("test_2.txt").expect("Cannot read the file test_2.txt")
+    let data = fs::read_to_string("test_2.txt")
+        .expect("Cannot read the file test_2.txt")
         .trim()
         .lines()
         .map(|l| l.to_string())

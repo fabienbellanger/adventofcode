@@ -1,5 +1,5 @@
-use std::fs;
 use std::collections::HashMap;
+use std::fs;
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data()));
@@ -8,7 +8,7 @@ fn main() {
 
 fn part1(data: Vec<Vec<String>>) -> usize {
     let mut result = 0;
-    
+
     for group in data {
         let mut good_answsers: HashMap<char, usize> = HashMap::new();
         for person in group {
@@ -24,7 +24,7 @@ fn part1(data: Vec<Vec<String>>) -> usize {
 
 fn part2(data: Vec<Vec<String>>) -> usize {
     let mut result = 0;
-    
+
     for group in data {
         let mut good_answsers: HashMap<char, usize> = HashMap::new();
         for person in &group {
@@ -36,10 +36,10 @@ fn part2(data: Vec<Vec<String>>) -> usize {
                 good_answsers.insert(c, val);
             }
         }
-        
+
         let mut good = 0;
         let persons_number = group.len();
-        for (_, v) in &good_answsers {
+        for v in good_answsers.values() {
             if *v == persons_number {
                 good += 1;
             }
@@ -54,11 +54,11 @@ fn part2(data: Vec<Vec<String>>) -> usize {
 fn get_groups(data: String) -> Vec<Vec<String>> {
     // Groups
     let data: Vec<&str> = data.trim().split("\n\n").collect();
-    
+
     // Persons
     let mut groups: Vec<Vec<String>> = Vec::new();
     for group in data {
-        let persons: Vec<String> = group.split("\n").map(|q| q.to_string()).collect();
+        let persons: Vec<String> = group.split('\n').map(|q| q.to_string()).collect();
         groups.push(persons);
     }
 

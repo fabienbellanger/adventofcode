@@ -10,7 +10,7 @@
 -  [x] Day 05 : Rust
 -  [x] Day 06 : Rust
 -  [x] Day 07 : Rust
--  [ ] Day 08 : 
+-  [ ] Day 08 : Rust
 -  [ ] Day 09 : 
 -  [ ] Day 10 : 
 -  [ ] Day 11 : 
