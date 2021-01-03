@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fs;
 
 #[derive(Debug)]
@@ -27,16 +27,16 @@ fn part2(data: Vec<Instruction>) -> isize {
 }
 
 fn get_accumulator_1(instructions: Vec<Instruction>) -> isize {
-    let mut used: HashMap<isize, usize> = HashMap::new();
+    let mut used: HashSet<isize> = HashSet::new();
     let mut index: isize = 0;
     let mut accumulator = 0;
 
     loop {
-        if used.contains_key(&index) {
+        if used.contains(&index) {
             break;
         }
 
-        used.insert(index, 0);
+        used.insert(index);
 
         let instruction = instructions.get(index as usize);
         match instruction {
