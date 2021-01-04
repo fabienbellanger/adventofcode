@@ -26,6 +26,41 @@ fn part2(data: Vec<Instruction>) -> isize {
     0
 }
 
+fn run_program(instructions: Vec<Instruction>, flip: isize) -> isize {
+    let mut i: isize = 0;
+    let mut visited: HashSet<isize> = HashSet::new();
+    let mut acc = 0isize;
+
+    while i < instructions.len() as isize {
+        if visited.contains(&i) {
+            break;
+        }
+
+        visited.insert(i);
+
+        let mut instruction = instructions.get(i as usize).unwrap();
+        if i == flip {
+            if instruction.operation == "jmp".to_owned() {
+                instruction.operation == "nop".to_owned();
+            } else if instruction.operation == "nop".to_owned() {
+                instruction.operation == "jmp".to_owned();
+            }
+        }
+
+        match instruction.operation.as_str() {
+            "nop" => i += 1,
+            "acc" => {
+                acc += instruction.value;
+                i += 1;
+            }
+            "jmp" => i += instruction.value,
+            _ => panic!("Operation not found"),
+        }
+    }
+
+    acc
+}
+
 fn get_accumulator_1(instructions: Vec<Instruction>) -> isize {
     let mut used: HashSet<isize> = HashSet::new();
     let mut index: isize = 0;
