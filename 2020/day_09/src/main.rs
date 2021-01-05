@@ -1,13 +1,31 @@
 use std::fs;
 
 fn main() {
-    println!("Part 1 result: {}", part1(get_data()));
-    // println!("Part 2 result: {}", part2(get_data()));
+    println!("Part 1 result: {}", part1(get_data(), 25));
 }
 
-fn part1(data: Vec<usize>) -> usize {
-    dbg!(data);
-    0
+fn part1(data: Vec<usize>, preamble: usize) -> usize {
+    let mut result = 0;
+
+    for i in preamble..data.len() {
+        let mut ok = false;
+        'sum: for j in i-preamble..i {
+            for k in j+1..i {
+                let sum = data[j] + data[k];
+                if sum == data[i] {
+                    ok = true;
+                    break 'sum;
+                }
+            }
+        }
+
+        if !ok {
+            result = data[i];
+            break;
+        }
+    }
+
+    result
 }
 
 fn get_data() -> Vec<usize> {
@@ -30,6 +48,6 @@ fn _get_data_test() -> Vec<usize> {
 
 #[test]
 fn test_part1() {
-    assert_eq!(127, part1(_get_data_test()));
-    // assert_eq!(1487, part1(get_data()));
+    assert_eq!(127, part1(_get_data_test(), 5));
+    assert_eq!(530627549, part1(get_data(), 25));
 }
