@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::fs;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Instruction {
     operation: String,
     value: isize,
@@ -23,39 +23,53 @@ fn part1(data: Vec<Instruction>) -> isize {
 }
 
 fn part2(data: Vec<Instruction>) -> isize {
-    0
+    let mut result = 0;
+
+    for (index, _instruction) in data.iter().enumerate() {
+        let r = run_program(&data, index as isize);
+        if r != 0 {
+            result = r;
+        }
+    }
+
+    result
 }
 
-fn run_program(instructions: Vec<Instruction>, flip: isize) -> isize {
+fn run_program(instructions: &Vec<Instruction>, flip: isize) -> isize {
     let mut i: isize = 0;
     let mut visited: HashSet<isize> = HashSet::new();
     let mut acc = 0isize;
 
     while i < instructions.len() as isize {
+        println!("i={}, flip={}", i as usize, flip);
+
         if visited.contains(&i) {
             break;
         }
 
         visited.insert(i);
 
-        let mut instruction = instructions.get(i as usize).unwrap();
+        let mut op = instructions.get(i as usize).unwrap().operation.as_str();
         if i == flip {
-            if instruction.operation == "jmp".to_owned() {
-                instruction.operation == "nop".to_owned();
-            } else if instruction.operation == "nop".to_owned() {
-                instruction.operation == "jmp".to_owned();
+            if op == "jmp" {
+                op = "nop";
+            }
+            if op == "nop" {
+                op = "jmp";
             }
         }
 
-        match instruction.operation.as_str() {
+        match op {
             "nop" => i += 1,
             "acc" => {
-                acc += instruction.value;
+                acc += instructions[i as usize].value;
                 i += 1;
             }
-            "jmp" => i += instruction.value,
+            "jmp" => i += instructions[i as usize].value,
             _ => panic!("Operation not found"),
         }
+
+        dbg!(acc);
     }
 
     acc
