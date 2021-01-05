@@ -19,92 +19,58 @@ fn main() {
 }
 
 fn part1(data: Vec<Instruction>) -> isize {
-    get_accumulator_1(data)
+    run_program(&data, -1).0
 }
 
 fn part2(data: Vec<Instruction>) -> isize {
     let mut result = 0;
-
-    for (index, _instruction) in data.iter().enumerate() {
+    
+    for index in 0..data.len() {
         let r = run_program(&data, index as isize);
-        if r != 0 {
-            result = r;
+        if r.1 {
+            result = r.0;
+            break;
         }
     }
 
     result
 }
 
-fn run_program(instructions: &Vec<Instruction>, flip: isize) -> isize {
+fn run_program(instructions: &Vec<Instruction>, flip: isize) -> (isize, bool) {
     let mut i: isize = 0;
     let mut visited: HashSet<isize> = HashSet::new();
-    let mut acc = 0isize;
+    let mut acc = 0;
 
     while i < instructions.len() as isize {
-        println!("i={}, flip={}", i as usize, flip);
-
         if visited.contains(&i) {
-            break;
+            return (acc, false);
         }
-
         visited.insert(i);
-
+        
         let mut op = instructions.get(i as usize).unwrap().operation.as_str();
         if i == flip {
             if op == "jmp" {
                 op = "nop";
-            }
-            if op == "nop" {
+            } else if op == "nop" {
                 op = "jmp";
             }
         }
 
         match op {
-            "nop" => i += 1,
             "acc" => {
                 acc += instructions[i as usize].value;
-                i += 1;
             }
-            "jmp" => i += instructions[i as usize].value,
-            _ => panic!("Operation not found"),
+            "jmp" => {
+                i += instructions[i as usize].value;
+                continue;
+            }
+            _ => (),
         }
 
-        dbg!(acc);
+        i += 1;
     }
 
-    acc
-}
-
-fn get_accumulator_1(instructions: Vec<Instruction>) -> isize {
-    let mut used: HashSet<isize> = HashSet::new();
-    let mut index: isize = 0;
-    let mut accumulator = 0;
-
-    loop {
-        if used.contains(&index) {
-            break;
-        }
-
-        used.insert(index);
-
-        let instruction = instructions.get(index as usize);
-        match instruction {
-            Some(instruction) => {
-                match instruction.operation.as_str() {
-                    "nop" => index += 1,
-                    "acc" => {
-                        accumulator += instruction.value;
-                        index += 1;
-                    }
-                    "jmp" => index += instruction.value,
-                    _ => panic!("Operation not found"),
-                };
-            }
-            None => panic!("Instruction not found"),
-        };
-    }
-
-    accumulator
+    (acc, true)
 }
 
 fn get_instructions(data: Vec<String>) -> Vec<Instruction> {
@@ -152,5 +118,5 @@ fn test_part1() {
 #[test]
 fn test_part2() {
     assert_eq!(8, part2(_get_data_test()));
-    // assert_eq!(1487, part2(get_data()));
+    assert_eq!(1607, part2(get_data()));
 }
