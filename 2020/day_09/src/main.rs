@@ -1,12 +1,10 @@
 use std::fs;
 
 fn main() {
-    println!("Part 1 result: {}", part1(get_data(), 25));
+    println!("Part 1 result: {}", part1(get_data(), 25).unwrap());
 }
 
-fn part1(data: Vec<usize>, preamble: usize) -> usize {
-    let mut result = 0;
-
+fn part1(data: Vec<usize>, preamble: usize) -> Option<usize> {
     for i in preamble..data.len() {
         let mut ok = false;
         'sum: for j in i-preamble..i {
@@ -20,12 +18,11 @@ fn part1(data: Vec<usize>, preamble: usize) -> usize {
         }
 
         if !ok {
-            result = data[i];
-            break;
+            return Some(data[i]);
         }
     }
 
-    result
+    None
 }
 
 fn get_data() -> Vec<usize> {
@@ -48,6 +45,6 @@ fn _get_data_test() -> Vec<usize> {
 
 #[test]
 fn test_part1() {
-    assert_eq!(127, part1(_get_data_test(), 5));
-    assert_eq!(530627549, part1(get_data(), 25));
+    assert_eq!(Some(127), part1(_get_data_test(), 5));
+    assert_eq!(Some(530627549), part1(get_data(), 25));
 }
