@@ -42,14 +42,15 @@ fn part2(data: &mut Vec<usize>) -> usize {
     let mut values: HashMap<usize, usize> = HashMap::new();
     
     for (index, v) in data.iter().enumerate() {
+        // Les combinaisons des 2 premières valeurs valent 1
         if index < 2 {
             values.insert(index, 1);
             continue;
         }
 
-        let max = (*v).min(MAX_JOLTS);
+        let n = (*v).min(MAX_JOLTS);
         let mut val = 0;
-        for i in 1..=max {
+        for i in 1..=n {
             val += values.get(&(v - i)).unwrap_or(&0);
         }
         

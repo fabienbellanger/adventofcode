@@ -12,7 +12,7 @@
 -  [x] Day 07 : Rust
 -  [x] Day 08 : Rust / Go
 -  [x] Day 09 : Rust
--  [ ] Day 10 : Rust
+-  [x] Day 10 : Rust
 -  [ ] Day 11 : 
 -  [ ] Day 12 : 
 -  [ ] Day 13 : 
