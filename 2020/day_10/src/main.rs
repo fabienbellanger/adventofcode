@@ -36,49 +36,27 @@ fn part1(data: &mut [usize]) -> usize {
 }
 
 fn part2(data: &mut Vec<usize>) -> usize {
+    data.push(0);
     data.sort_unstable();
-    data.insert(0, 0);
-    let n = data.len();
 
     let mut values: HashMap<usize, usize> = HashMap::new();
-    values.insert(0, 1);
-    values.insert(1, 1);
     
-    for i in 2..n {
-        let mut j = 1;
-        let mut c: Vec<usize> = Vec::new();
-        let max = if i == 2 {
-            MAX_JOLTS
-        } else {
-            MAX_JOLTS + 1
-        };
-        while !(j == max + 1) {
-            if i == 2 && data[i] == 2 {
-                println!("{} + 1 - {} + 1 <= {}", data[i], MAX_JOLTS, data[i-j]);
-                if data[i] >= max && data[i] + 1 - max <= data[i-j] {
-                    println!("OK => {}, {}", data[i-j], data[i]);
-                    c.push(data[i-j]);
-                }
-            } else {
-                // println!("======> i = {}", i);
-                if data[i] >= max && data[i] - max <= data[i-j] {
-                    // println!("OK => {}, {}", data[i-j], data[i]);
-                    c.push(data[i-j]);
-                }
-            }
-            j += 1;
+    for (index, v) in data.iter().enumerate() {
+        if index < 2 {
+            values.insert(index, 1);
+            continue;
         }
 
-        let mut t = 0;
-        for k in c {
-            t += values[&k];
+        let max = (*v).min(MAX_JOLTS);
+        let mut val = 0;
+        for i in 1..=max {
+            val += values.get(&(v - i)).unwrap_or(&0);
         }
-        values.insert(data[i], t);
+        
+        values.insert(*v, val);
     }
-    
-    dbg!(&values);
 
-    values[&data[n-1]]
+    *values.get(data.last().unwrap()).unwrap()
 }
 
 fn get_data() -> Vec<usize> {
@@ -101,14 +79,16 @@ fn _get_data_test() -> Vec<usize> {
 
 #[test]
 fn test_part1() {
-    //assert_eq!(35, part1(&mut _get_data_test()));
+    let mut test = vec![16, 10, 15, 5, 1, 11, 7, 19, 6, 12, 4];
+    assert_eq!(35, part1(&mut test));
     assert_eq!(220, part1(&mut _get_data_test()));
     assert_eq!(2070, part1(&mut get_data()));
 }
 
 #[test]
 fn test_part2() {
-    // assert_eq!(8, part2(&mut _get_data_test()));
+    let mut test = vec![16, 10, 15, 5, 1, 11, 7, 19, 6, 12, 4];
+    assert_eq!(8, part2(&mut test));
     assert_eq!(19208, part2(&mut _get_data_test()));
-    // assert_eq!(, part2(&mut get_data()));
+    assert_eq!(24179327893504, part2(&mut get_data()));
 }
