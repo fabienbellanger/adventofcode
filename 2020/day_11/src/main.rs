@@ -7,46 +7,75 @@ enum SeatState {
     Occuped,
 }
 
+#[derive(Debug)]
+struct SeatsLayout {
+    lines_number: usize,
+    seats: Vec<SeatState>,
+}
+
 fn main() {
     println!("Part 1 result: {}", part1(get_data()));
     // println!("Part 2 result: {}", part2(&mut get_data()));
-} 
+}
 
-fn part1(data: Vec<Vec<SeatState>>) -> usize {
-    dbg!(data);
+fn part1(seats: SeatsLayout) -> usize {
+    dbg!(&seats);
+    
+    for i in 0..seats.seats.len() {
+        apply_rules(&seats, i);
+    }
+
     0
 }
 
-fn get_data() -> Vec<Vec<SeatState>> {
-    fs::read_to_string("input.txt")
-        .expect("Cannot read the file input.txt")
-        .trim()
-        .lines()
-        .map(|l| 
-            l.chars()
-            .map(|s| match s {
-                'L' => SeatState::Empty,
-                '#' => SeatState::Occuped,
-                _ => SeatState::Floor,
-            })
-            .collect())
-        .collect()
+fn apply_rules(seats: &SeatsLayout, index: usize) -> SeatState {
+    let max_seats = seats.seats.len();
+    dbg!(max_seats);
+
+    SeatState::Empty
 }
 
-fn _get_data_test() -> Vec<Vec<SeatState>> {
-    fs::read_to_string("test.txt")
-        .expect("Cannot read the file test.txt")
+fn get_data() -> SeatsLayout {
+    let data = fs::read_to_string("input.txt").expect("Cannot read the file input.txt");
+    let lines = data.trim().lines();
+    let s: Vec<SeatState> = data
         .trim()
-        .lines()
-        .map(|l| 
-            l.chars()
-            .map(|s| match s {
+        .chars()
+        .filter(|c| *c != '\n')
+        .map(|c| match c {
+            'L' => SeatState::Empty,
+            '#' => SeatState::Occuped,
+            _ => SeatState::Floor,
+        })
+        .collect();
+
+    SeatsLayout {
+        lines_number : lines.count(),
+        seats: s,
+    }
+}
+
+fn _get_data_test() -> SeatsLayout {
+    let data = fs::read_to_string("test.txt").expect("Cannot read the file test.txt");
+    let lines = data.trim().lines();
+    let s: Vec<SeatState> = data
+        .trim()
+        .chars()
+        .filter(|c| *c != '\n')
+        .map(|c| {
+            dbg!(c);
+            match c {
                 'L' => SeatState::Empty,
                 '#' => SeatState::Occuped,
                 _ => SeatState::Floor,
-            })
-            .collect())
-        .collect()
+            }
+        })
+        .collect();
+
+    SeatsLayout {
+        lines_number : lines.count(),
+        seats: s,
+    }
 }
 
 #[test]
