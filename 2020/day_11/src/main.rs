@@ -7,75 +7,64 @@ enum SeatState {
     Occuped,
 }
 
-#[derive(Debug)]
-struct SeatsLayout {
-    lines_number: usize,
-    seats: Vec<SeatState>,
-}
-
 fn main() {
     println!("Part 1 result: {}", part1(get_data()));
     // println!("Part 2 result: {}", part2(&mut get_data()));
 }
 
-fn part1(seats: SeatsLayout) -> usize {
+fn part1(seats: Vec<Vec<SeatState>>) -> usize {
     dbg!(&seats);
-    
-    for i in 0..seats.seats.len() {
-        apply_rules(&seats, i);
+
+    for (row_index, row) in seats.iter().enumerate() {
+        for (col_index, col) in row.iter().enumerate() {
+            apply_rules(&seats, row_index, col_index);
+        }
     }
 
     0
 }
 
-fn apply_rules(seats: &SeatsLayout, index: usize) -> SeatState {
-    let max_seats = seats.seats.len();
-    dbg!(max_seats);
-
+fn apply_rules(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) -> SeatState {
+    println!("row_index={}, col_index={}", row_index, col_index);
     SeatState::Empty
 }
 
-fn get_data() -> SeatsLayout {
-    let data = fs::read_to_string("input.txt").expect("Cannot read the file input.txt");
-    let lines = data.trim().lines();
-    let s: Vec<SeatState> = data
+fn get_data() -> Vec<Vec<SeatState>> {
+    fs::read_to_string("input.txt")
+        .expect("Cannot read the file input.txt")
         .trim()
-        .chars()
-        .filter(|c| *c != '\n')
-        .map(|c| match c {
-            'L' => SeatState::Empty,
-            '#' => SeatState::Occuped,
-            _ => SeatState::Floor,
+        .lines()
+        .map(|line| {
+            line.chars()
+                .map(|c|
+                    match c {
+                        'L' => SeatState::Empty,
+                        '#' => SeatState::Occuped,
+                        _ => SeatState::Floor,
+                    }
+                )
+                .collect()
         })
-        .collect();
-
-    SeatsLayout {
-        lines_number : lines.count(),
-        seats: s,
-    }
+        .collect()
 }
 
-fn _get_data_test() -> SeatsLayout {
-    let data = fs::read_to_string("test.txt").expect("Cannot read the file test.txt");
-    let lines = data.trim().lines();
-    let s: Vec<SeatState> = data
+fn _get_data_test() -> Vec<Vec<SeatState>> {
+    fs::read_to_string("test.txt")
+        .expect("Cannot read the file test.txt")
         .trim()
-        .chars()
-        .filter(|c| *c != '\n')
-        .map(|c| {
-            dbg!(c);
-            match c {
-                'L' => SeatState::Empty,
-                '#' => SeatState::Occuped,
-                _ => SeatState::Floor,
-            }
+        .lines()
+        .map(|line| {
+            line.chars()
+                .map(|c|
+                    match c {
+                        'L' => SeatState::Empty,
+                        '#' => SeatState::Occuped,
+                        _ => SeatState::Floor,
+                    }
+                )
+                .collect()
         })
-        .collect();
-
-    SeatsLayout {
-        lines_number : lines.count(),
-        seats: s,
-    }
+        .collect()
 }
 
 #[test]
