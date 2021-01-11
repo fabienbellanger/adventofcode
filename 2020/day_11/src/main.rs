@@ -44,7 +44,7 @@ fn apply_rules(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) 
     match seats[row_index][col_index] {
         SeatState::Floor => SeatState::Floor,
         SeatState::Empty => {
-            // If no seat occupied => occupied
+            // If no seat occuped => occuped
             let mut number_of_occuped = 0;
             let mut row_min: isize = -1;
             let mut row_max: isize = 1;
@@ -88,7 +88,7 @@ fn apply_rules(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) 
             }
         },
         SeatState::Occuped => {
-            // If 4 or more seats occupied => empty
+            // If 4 or more seats occuped => empty
             let mut number_of_occuped = 0;
             let mut row_min: isize = -1;
             let mut row_max: isize = 1;
