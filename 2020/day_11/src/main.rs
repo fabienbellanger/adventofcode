@@ -9,7 +9,7 @@ enum SeatState {
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data()));
-    // println!("Part 2 result: {}", part2(&mut get_data()));
+    println!("Part 2 result: {}", part2(get_data()));
 }
 
 fn part1(seats: Vec<Vec<SeatState>>) -> usize {
@@ -20,7 +20,7 @@ fn part1(seats: Vec<Vec<SeatState>>) -> usize {
         for (row_index, row) in seats.iter().enumerate() {
             new_seats.push(Vec::new());
             for (col_index, _col) in row.iter().enumerate() {
-                new_seats[row_index].push(apply_rules(&last, row_index, col_index));
+                new_seats[row_index].push(apply_rules1(&last, row_index, col_index));
             }
         }
 
@@ -29,9 +29,50 @@ fn part1(seats: Vec<Vec<SeatState>>) -> usize {
         } else {
             last = new_seats.clone();
         }
+
+        // _display_seats(&last);
     }
 
     count_occuped(&last)
+}
+
+fn part2(seats: Vec<Vec<SeatState>>) -> usize {
+    let mut last: Vec<Vec<SeatState>> = seats.clone();
+    let mut new_seats: Vec<Vec<SeatState>> = Vec::new();
+    loop {
+        new_seats.clear();
+        for (row_index, row) in seats.iter().enumerate() {
+            new_seats.push(Vec::new());
+            for (col_index, _col) in row.iter().enumerate() {
+                new_seats[row_index].push(apply_rules2(&last, row_index, col_index));
+            }
+        }
+
+        if is_seats_equal(&last, &new_seats) {
+            break;
+        } else {
+            last = new_seats.clone();
+        }
+
+        // _display_seats(&last);
+    }
+
+    count_occuped(&last)
+}
+
+fn _display_seats(seats: &Vec<Vec<SeatState>>) {
+    let mut s = String::new();
+    for r in seats {
+        for c in r {
+            match c {
+                SeatState::Empty => s.push('L'),
+                SeatState::Occuped => s.push('#'),
+                SeatState::Floor => s.push('.'),
+            };
+        }
+        s.push('\n');
+    }
+    println!("{}", s);
 }
 
 fn is_seats_equal(seats_1: &Vec<Vec<SeatState>>, seats_2: &Vec<Vec<SeatState>>) -> bool {
@@ -60,28 +101,62 @@ fn count_occuped(seats: &Vec<Vec<SeatState>>) -> usize {
     n
 }
 
-fn apply_rules(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) -> SeatState {
+fn get_bounds(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) -> (isize, isize, isize, isize) {
+    let mut row_min: isize = -1;
+    let mut row_max: isize = 1;
+    let mut col_min: isize = -1;
+    let mut col_max: isize = 1;
+
+    if row_index == 0 {
+        row_min = 0;
+    } else if row_index == seats.len() - 1 {
+        row_max = 0
+    }
+
+    if col_index == 0 {
+        col_min = 0;
+    } else if col_index == seats[row_index].len() - 1 {
+        col_max = 0
+    }
+
+    (row_min, row_max, col_min, col_max)
+}
+
+fn get_bounds2(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) -> (isize, isize, isize, isize) {
+    let rows_number = seats.len();
+    let cols_number = seats[row_index].len();
+
+    // let mut row_min: isize = -(rows_number as isize - 1);
+    // let mut row_max: isize = rows_number as isize - 1;
+    // let mut col_min: isize = -(cols_number as isize - 1);
+    // let mut col_max: isize = cols_number as isize - 1;
+
+    // if row_index == 0 {
+    //     row_min = 0;
+    // } else if row_index == rows_number - 1 {
+    //     row_max = 0
+    // }
+
+    // if col_index == 0 {
+    //     col_min = 0;
+    // } else if col_index == cols_number - 1 {
+    //     col_max = 0
+    // }
+
+    let row_min = -(row_index as isize);
+    let row_max = (rows_number as isize) - 1 - (row_index as isize);
+    let col_min = -(col_index as isize);
+    let col_max = (cols_number as isize) - 1 - (col_index as isize);
+
+    (row_min, row_max, col_min, col_max)
+}
+
+fn apply_rules1(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) -> SeatState {
     match seats[row_index][col_index] {
         SeatState::Floor => SeatState::Floor,
-        SeatState::Empty => {
-            // If no seat occuped => occuped
+        SeatState::Empty | SeatState::Occuped => {
             let mut number_of_occuped = 0;
-            let mut row_min: isize = -1;
-            let mut row_max: isize = 1;
-            let mut col_min: isize = -1;
-            let mut col_max: isize = 1;
-
-            if row_index == 0 {
-                row_min = 0;
-            } else if row_index == seats[row_index].len() - 1 {
-                row_max = 0
-            }
-
-            if col_index == 0 {
-                col_min = 0;
-            } else if col_index == seats.len() - 1 {
-                col_max = 0
-            }
+            let (row_min, row_max, col_min, col_max) = get_bounds(&seats, row_index, col_index);
 
             for r in row_min..=row_max {
                 if seats.get((row_index as isize + r) as usize).is_some() {
@@ -101,30 +176,38 @@ fn apply_rules(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) 
                 }
             }
 
-            match number_of_occuped {
-                0 => SeatState::Occuped,
-                _ => SeatState::Empty,
+            match seats[row_index][col_index] {
+                SeatState::Empty => match number_of_occuped {
+                    0 => SeatState::Occuped,
+                    _ => SeatState::Empty,
+                },
+                SeatState::Occuped => 
+                match number_of_occuped {
+                    4..=8  => SeatState::Empty,
+                    _ => SeatState::Occuped,
+                },
+                SeatState::Floor => SeatState::Floor,
             }
-        },
-        SeatState::Occuped => {
-            // If 4 or more seats occuped => empty
+        }
+    }
+}
+
+fn apply_rules2(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) -> SeatState {
+    match seats[row_index][col_index] {
+        SeatState::Floor => SeatState::Floor,
+        SeatState::Empty | SeatState::Occuped => {
             let mut number_of_occuped = 0;
-            let mut row_min: isize = -1;
-            let mut row_max: isize = 1;
-            let mut col_min: isize = -1;
-            let mut col_max: isize = 1;
+            let (row_min, row_max, col_min, col_max) = get_bounds2(&seats, row_index, col_index);
+            // println!("=> ({}, {}) || {} | {} | {} | {}", row_index, col_index, row_min, row_max, col_min, col_max);
 
-            if row_index == 0 {
-                row_min = 0;
-            } else if row_index == seats[row_index].len() - 1 {
-                row_max = 0
-            }
+            // 1ere boucle : row_min <= i <= row_max
+            // 2eme boucle : col_min <= j <= col_max
+            //                 sur les i, row_index +- j
 
-            if col_index == 0 {
-                col_min = 0;
-            } else if col_index == seats.len() - 1 {
-                col_max = 0
-            }
+            // Surement possible en un coup avec 2 boucles
+            // i in row_min..=row_max
+            //     j in col_min..=col_max
+            //         if i == j || i == -j 
 
             for r in row_min..=row_max {
                 if seats.get((row_index as isize + r) as usize).is_some() {
@@ -144,9 +227,17 @@ fn apply_rules(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) 
                 }
             }
 
-            match number_of_occuped {
-                4..=8  => SeatState::Empty,
-                _ => SeatState::Occuped,
+            match seats[row_index][col_index] {
+                SeatState::Empty => match number_of_occuped {
+                    0 => SeatState::Occuped,
+                    _ => SeatState::Empty,
+                },
+                SeatState::Occuped => 
+                match number_of_occuped {
+                    5..=8  => SeatState::Empty,
+                    _ => SeatState::Occuped,
+                },
+                SeatState::Floor => SeatState::Floor,
             }
         }
     }
@@ -193,13 +284,11 @@ fn _get_data_test() -> Vec<Vec<SeatState>> {
 #[test]
 fn test_part1() {
     assert_eq!(37, part1(_get_data_test()));
-    // assert_eq!(2070, part1(&mut get_data()));
+    assert_eq!(2222, part1(get_data()));
 }
 
-// #[test]
-// fn test_part2() {
-//     let mut test = vec![16, 10, 15, 5, 1, 11, 7, 19, 6, 12, 4];
-//     assert_eq!(8, part2(&mut test));
-//     assert_eq!(19208, part2(&mut _get_data_test()));
-//     assert_eq!(24179327893504, part2(&mut get_data()));
-// }
+#[test]
+fn test_part2() {
+    assert_eq!(26, part2(_get_data_test()));
+    // assert_eq!(, part2(get_data()));
+}
