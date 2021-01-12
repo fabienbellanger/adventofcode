@@ -1,6 +1,6 @@
 use std::fs;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 enum SeatState {
     Floor,
     Empty,
@@ -20,7 +20,7 @@ fn part1(seats: Vec<Vec<SeatState>>) -> usize {
         for (row_index, row) in seats.iter().enumerate() {
             new_seats.push(Vec::new());
             for (col_index, _col) in row.iter().enumerate() {
-                new_seats[row_index].push(apply_rules(&seats, row_index, col_index));
+                new_seats[row_index].push(apply_rules(&last, row_index, col_index));
             }
         }
 
@@ -31,13 +31,33 @@ fn part1(seats: Vec<Vec<SeatState>>) -> usize {
         }
     }
 
-    dbg!(&last);
-
-    0
+    count_occuped(&last)
 }
 
-fn is_seats_equal(seat_1: &Vec<Vec<SeatState>>, seat_2: &Vec<Vec<SeatState>>) -> bool {
+fn is_seats_equal(seats_1: &Vec<Vec<SeatState>>, seats_2: &Vec<Vec<SeatState>>) -> bool {
+    for (i, r) in seats_1.iter().enumerate() {
+        for (j, _) in r.iter().enumerate() {
+            if seats_1[i][j] != seats_2[i][j] {
+                return false;
+            }
+        }
+    }
+    
     true
+}
+
+fn count_occuped(seats: &Vec<Vec<SeatState>>) -> usize {
+    let mut n = 0;
+
+    for r in seats {
+        for c in r {
+            if c == &SeatState::Occuped {
+                n += 1;
+            }
+        }
+    }
+
+    n
 }
 
 fn apply_rules(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) -> SeatState {
@@ -63,24 +83,23 @@ fn apply_rules(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) 
                 col_max = 0
             }
 
-            // println!("[{}, {}], row=[{}, {}], col=[{}, {}]", row_index, col_index, row_min, row_max, col_min, col_max);
-
             for r in row_min..=row_max {
-                let line = seats.get((row_index as isize + r) as usize).unwrap();
-                for c in col_min..=col_max {
-                    if r == 0 && c == 0 {
-                        continue;
+                if seats.get((row_index as isize + r) as usize).is_some() {
+                    let line = seats.get((row_index as isize + r) as usize).unwrap();
+                    for c in col_min..=col_max {
+                        if r == 0 && c == 0 {
+                            continue;
+                        }
+                        
+                        if line.get((col_index as isize + c) as usize).is_some() {
+                            match line.get((col_index as isize + c) as usize).unwrap() {
+                                SeatState::Occuped => number_of_occuped += 1,
+                                _ => (),
+                            };
+                        }
                     }
-                    // println!("r={}, c={}, col_index={}", r, c, col_index);
-                    // dbg!(line);
-                    match line.get((col_index as isize + c) as usize).unwrap() {
-                        SeatState::Occuped => number_of_occuped += 1,
-                        _ => (),
-                    };
                 }
             }
-
-            dbg!(number_of_occuped);
 
             match number_of_occuped {
                 0 => SeatState::Occuped,
@@ -107,24 +126,23 @@ fn apply_rules(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize) 
                 col_max = 0
             }
 
-            // println!("[{}, {}], row=[{}, {}], col=[{}, {}]", row_index, col_index, row_min, row_max, col_min, col_max);
-
             for r in row_min..=row_max {
-                let line = seats.get((row_index as isize + r) as usize).unwrap();
-                for c in col_min..=col_max {
-                    if r == 0 && c == 0 {
-                        continue;
+                if seats.get((row_index as isize + r) as usize).is_some() {
+                    let line = seats.get((row_index as isize + r) as usize).unwrap();
+                    for c in col_min..=col_max {
+                        if r == 0 && c == 0 {
+                            continue;
+                        }
+                        
+                        if line.get((col_index as isize + c) as usize).is_some() {
+                            match line.get((col_index as isize + c) as usize).unwrap() {
+                                SeatState::Occuped => number_of_occuped += 1,
+                                _ => (),
+                            };
+                        }
                     }
-                    // println!("r={}, c={}, col_index={}", r, c, col_index);
-                    // dbg!(line);
-                    match line.get((col_index as isize + c) as usize).unwrap() {
-                        SeatState::Occuped => number_of_occuped += 1,
-                        _ => (),
-                    };
                 }
             }
-
-            dbg!(number_of_occuped);
 
             match number_of_occuped {
                 4..=8  => SeatState::Empty,
