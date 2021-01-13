@@ -52,6 +52,10 @@ impl Distance {
             direction: Action::East,
         }
     }
+
+    fn manhattan_distance(&self) -> isize {
+        self.north_south + self.east_west
+    }
 }
 
 fn main() {
@@ -80,9 +84,10 @@ fn part1(instructions: &Vec<Instruction>) -> isize {
         };
     }
 
-    distance.north_south + distance.east_west
+    distance.manhattan_distance()
 }
 
+// TODO: Implémenter dans Distance
 fn move_boat(distance: &mut Distance, direction: &Action, value: isize) {
     match direction {
         Action::North => {
@@ -101,6 +106,7 @@ fn move_boat(distance: &mut Distance, direction: &Action, value: isize) {
     };
 }
 
+// TODO: Implémenter dans Distance
 fn change_direction(distance: &Distance, angle: isize) -> Action {
     match distance.direction {
         Action::North => {
