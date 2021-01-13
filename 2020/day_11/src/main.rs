@@ -44,6 +44,7 @@ fn part2(seats: Vec<Vec<SeatState>>) -> usize {
         for (row_index, row) in seats.iter().enumerate() {
             new_seats.push(Vec::new());
             for (col_index, _col) in row.iter().enumerate() {
+                println!("=====> ({}, {})", row_index, col_index);
                 new_seats[row_index].push(apply_rules2(&last, row_index, col_index));
             }
         }
@@ -54,7 +55,7 @@ fn part2(seats: Vec<Vec<SeatState>>) -> usize {
             last = new_seats.clone();
         }
 
-        // _display_seats(&last);
+        _display_seats(&last);
     }
 
     count_occuped(&last)
@@ -199,33 +200,150 @@ fn apply_rules2(seats: &Vec<Vec<SeatState>>, row_index: usize, col_index: usize)
             let mut number_of_occuped = 0;
             let (row_min, row_max, col_min, col_max) = get_bounds2(&seats, row_index, col_index);
             // println!("=> ({}, {}) || {} | {} | {} | {}", row_index, col_index, row_min, row_max, col_min, col_max);
+            
+            // (L, TL, T, TR, R, RB, B, BL)
+            let mut directions: (usize, usize, usize, usize, usize, usize, usize, usize) = (0, 0, 0, 0, 0, 0, 0, 0);
 
-            // 1ere boucle : row_min <= i <= row_max
-            // 2eme boucle : col_min <= j <= col_max
-            //                 sur les i, row_index +- j
+            // for r in row_min..=row_max {
+            //     if seats.get((row_index as isize + r) as usize).is_some() {
+            //         let line = seats.get((row_index as isize + r) as usize).unwrap();
+            //         for c in col_min..=col_max {
+            //             if r == 0 && c == 0 {
+            //                 continue;
+            //             }
 
-            // Surement possible en un coup avec 2 boucles
-            // i in row_min..=row_max
-            //     j in col_min..=col_max
-            //         if i == j || i == -j 
+            //             // Row
+            //             if r == 0 {
+            //                 // println!("Row ({}, {})", r, c);
+            //                 match line.get((col_index as isize + c) as usize).unwrap() {
+            //                     &SeatState::Occuped | &SeatState::Empty => {
+            //                         if c < 0 {
+            //                             // Left
+            //                             if directions.0 == 0 {
+            //                                 directions.0 = 1;
+            //                                 if line.get((col_index as isize + c) as usize).unwrap() == &SeatState::Occuped {
+            //                                     println!("L");
+            //                                     number_of_occuped += 1;
+            //                                 }
+            //                             }
+            //                         } else {
+            //                             // Right
+            //                             if directions.4 == 0 {
+            //                                 directions.4 = 1;
+            //                                 if line.get((col_index as isize + c) as usize).unwrap() == &SeatState::Occuped {
+            //                                     println!("R");
+            //                                     number_of_occuped += 1;
+            //                                 }
+            //                             }
+            //                         }
+            //                     },
+            //                     &SeatState::Floor => (),
+            //                 };
+            //             }
 
-            for r in row_min..=row_max {
-                if seats.get((row_index as isize + r) as usize).is_some() {
-                    let line = seats.get((row_index as isize + r) as usize).unwrap();
-                    for c in col_min..=col_max {
-                        if r == 0 && c == 0 {
-                            continue;
-                        }
+            //             // Column
+            //             if c == 0 {
+            //                 // println!("Column ({}, {})", r, c);
+            //                 match line.get((col_index as isize + c) as usize).unwrap() {
+            //                     &SeatState::Occuped | &SeatState::Empty => {
+            //                         if r < 0 {
+            //                             // Left
+            //                             if directions.2 == 0 {
+            //                                 directions.2 = 1;
+            //                                 if line.get((col_index as isize + c) as usize).unwrap() == &SeatState::Occuped {
+            //                                     println!("T");
+            //                                     number_of_occuped += 1;
+            //                                 }
+            //                             }
+            //                         } else {
+            //                             // Right
+            //                             if directions.6 == 0 {
+            //                                 directions.6 = 1;
+            //                                 if line.get((col_index as isize + c) as usize).unwrap() == &SeatState::Occuped {
+            //                                     println!("B");
+            //                                     number_of_occuped += 1;
+            //                                 }
+            //                             }
+            //                         }
+            //                     },
+            //                     &SeatState::Floor => (),
+            //                 };
+            //             }
+
+            //             // Diagonales
+            //             if isize::abs(r) == isize::abs(c) {
+            //                 // println!("Diagonal ({}, {})", r, c);
+            //                 if line.get((col_index as isize + c) as usize).unwrap() == &SeatState::Occuped {
+            //                     if c < 0 {
+            //                         // Left
+            //                         if r < 0 {
+            //                             // Left Top
+            //                             if directions.1 == 0 {
+            //                                 directions.1 = 1;
+            //                                 if line.get((col_index as isize + c) as usize).unwrap() == &SeatState::Occuped {
+            //                                     println!("LT");
+            //                                     number_of_occuped += 1;
+            //                                 }
+            //                             }
+            //                         } else {
+            //                             // Left Bottom
+            //                             if directions.7 == 0 {
+            //                                 directions.7 = 1;
+            //                                 if line.get((col_index as isize + c) as usize).unwrap() == &SeatState::Occuped {
+            //                                     println!("LB");
+            //                                     number_of_occuped += 1;
+            //                                 }
+            //                             }
+            //                         }
+            //                     } else {
+            //                         // Right
+            //                         if r < 0 {
+            //                             // Right Top
+            //                             if directions.3 == 0 {
+            //                                 directions.3 = 1;
+            //                                 if line.get((col_index as isize + c) as usize).unwrap() == &SeatState::Occuped {
+            //                                     println!("RT");
+            //                                     number_of_occuped += 1;
+            //                                 }
+            //                             }
+            //                         } else {
+            //                             // Right Bottom
+            //                             if directions.5 == 0 {
+            //                                 directions.5 = 1;
+            //                                 if line.get((col_index as isize + c) as usize).unwrap() == &SeatState::Occuped {
+            //                                     println!("RB");
+            //                                     number_of_occuped += 1;
+            //                                 }
+            //                             }
+            //                         }
+            //                     }
+            //                 }
+            //             }
                         
-                        if line.get((col_index as isize + c) as usize).is_some() {
-                            match line.get((col_index as isize + c) as usize).unwrap() {
-                                SeatState::Occuped => number_of_occuped += 1,
-                                _ => (),
-                            };
-                        }
-                    }
+            //             // if line.get((col_index as isize + c) as usize).is_some() {
+            //             //     match line.get((col_index as isize + c) as usize).unwrap() {
+            //             //         SeatState::Occuped => number_of_occuped += 1,
+            //             //         _ => (),
+            //             //     };
+            //             // }
+            //         }
+            //     }
+            // }
+
+            // Left
+            let line = seats.get(row_index).unwrap();
+            for c in 1..col_min+1 {
+                let seat = line.get((col_index as isize - c) as usize).unwrap();
+                if seat == &SeatState::Empty {
+                    break;
+                } else if seat == &SeatState::Occuped {
+                    number_of_occuped += 1;
+                } else {
+                    continue;
                 }
-            }
+            } 
+
+            dbg!(number_of_occuped);
 
             match seats[row_index][col_index] {
                 SeatState::Empty => match number_of_occuped {
