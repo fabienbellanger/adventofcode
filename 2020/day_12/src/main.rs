@@ -56,6 +56,58 @@ impl Distance {
     fn manhattan_distance(&self) -> isize {
         self.north_south + self.east_west
     }
+
+    fn change_direction(&mut self, angle: isize) {
+        match self.direction {
+            Action::North => match angle {
+                90 | -270 => self.direction = Action::East,
+                180 | -180 => self.direction = Action::South,
+                -90 | 270 => self.direction = Action::West,
+                _ => self.direction = Action::North,
+            },
+            Action::South => match angle {
+                90 | -270 => self.direction = Action::West,
+                180 | -180 => self.direction = Action::North,
+                -90 | 270 => self.direction = Action::East,
+                _ => self.direction = Action::South,
+            },
+            Action::East => match angle {
+                90 | -270 => self.direction = Action::South,
+                180 | -180 => self.direction = Action::West,
+                -90 | 270 => self.direction = Action::North,
+                _ => self.direction = Action::East,
+            },
+            Action::West => match angle {
+                90 | -270 => self.direction = Action::North,
+                180 | -180 => self.direction = Action::East,
+                -90 | 270 => self.direction = Action::South,
+                _ => self.direction = Action::West,
+            },
+            _ => (),
+        };
+    }
+
+    fn move_forward(&mut self, direction: Option<&Action>, value: isize) {
+        let direction = match direction {
+            Some(d) => d,
+            None => &self.direction,
+        };
+        match direction {
+            Action::North => {
+                self.north_south -= value;
+            }
+            Action::South => {
+                self.north_south += value;
+            }
+            Action::East => {
+                self.east_west += value;
+            }
+            Action::West => {
+                self.east_west -= value;
+            }
+            _ => (),
+        };
+    }
 }
 
 fn main() {
@@ -63,86 +115,27 @@ fn main() {
     // println!("Part 2 result: {}", part2(get_data()));
 }
 
-fn part1(instructions: &Vec<Instruction>) -> isize {
+fn part1(instructions: &[Instruction]) -> isize {
     let mut distance = Distance::new();
 
     for instruction in instructions {
         match instruction.action {
             Action::North | Action::South | Action::East | Action::West => {
-                move_boat(&mut distance, &instruction.action, instruction.value);
-            },
+                distance.move_forward(Some(&instruction.action), instruction.value);
+            }
             Action::Left => {
-                distance.direction = change_direction(&distance, -instruction.value);
-            },
+                distance.change_direction(-instruction.value);
+            }
             Action::Right => {
-                distance.direction = change_direction(&distance, instruction.value);
-            },
+                distance.change_direction(instruction.value);
+            }
             Action::Forward => {
-                let direction= &(distance.clone()).direction;
-                move_boat(&mut distance, direction, instruction.value);
-            },
+                distance.move_forward(None, instruction.value);
+            }
         };
     }
 
     distance.manhattan_distance()
-}
-
-// TODO: Implémenter dans Distance
-fn move_boat(distance: &mut Distance, direction: &Action, value: isize) {
-    match direction {
-        Action::North => {
-            distance.north_south -= value;
-        },
-        Action::South => {
-            distance.north_south += value;
-        },
-        Action::East => {
-            distance.east_west += value;
-        },
-        Action::West => {
-            distance.east_west -= value;
-        },
-        _ => (),
-    };
-}
-
-// TODO: Implémenter dans Distance
-fn change_direction(distance: &Distance, angle: isize) -> Action {
-    match distance.direction {
-        Action::North => {
-            match angle {
-                90 | -270 => Action::East,
-                180 | -180 => Action::South,
-                -90 | 270 => Action::West,
-                _ => Action::North,
-            }
-        },
-        Action::South => {
-            match angle {
-                90 | -270 => Action::West,
-                180 | -180 => Action::North,
-                -90 | 270 => Action::East,
-                _ => Action::South,
-            }
-        },
-        Action::East => {
-            match angle {
-                90 | -270 => Action::South,
-                180 | -180 => Action::West,
-                -90 | 270 => Action::North,
-                _ => Action::East,
-            }
-        },
-        Action::West => {
-            match angle {
-                90 | -270 => Action::North,
-                180 | -180 => Action::East,
-                -90 | 270 => Action::South,
-                _ => Action::West,
-            }
-        },
-        _ => distance.direction.clone(),
-    }
 }
 
 fn part2() -> usize {
@@ -155,7 +148,7 @@ fn get_data() -> Vec<Instruction> {
         .trim()
         .lines()
         .map(|line| {
-            let (action , value) = line.trim().split_at(1);
+            let (action, value) = line.trim().split_at(1);
 
             Instruction::new(action, value)
         })
@@ -168,7 +161,7 @@ fn _get_data_test() -> Vec<Instruction> {
         .trim()
         .lines()
         .map(|line| {
-            let (action , value) = line.trim().split_at(1);
+            let (action, value) = line.trim().split_at(1);
 
             Instruction::new(action, value)
         })
