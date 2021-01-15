@@ -44,22 +44,20 @@ impl Instruction {
 
 #[derive(Debug, Clone)]
 struct Ship {
-    north_south: isize, // North < 0, South > 0
-    east_west: isize,   // West < 0,  East > 0
+    position: Position,
     direction: Direction,
 }
 
 impl Ship {
     fn new() -> Self {
         Self {
-            north_south: 0,
-            east_west: 0,
+            position: Position { north: 0, east: 0 },
             direction: Direction::East,
         }
     }
 
     fn manhattan_distance(&self) -> isize {
-        self.north_south + self.east_west
+        self.position.north.abs() + self.position.east.abs()
     }
 
     fn change_direction(&mut self, angle: isize) {
@@ -98,65 +96,52 @@ impl Ship {
         };
         match direction {
             Direction::North => {
-                self.north_south -= value;
+                self.position.north += value;
             }
             Direction::South => {
-                self.north_south += value;
+                self.position.north -= value;
             }
             Direction::East => {
-                self.east_west += value;
+                self.position.east += value;
             }
             Direction::West => {
-                self.east_west -= value;
+                self.position.east -= value;
             }
         };
     }
 
-    fn forward(&mut self, value: isize, waypoint: &WayPoint) {
-        self.north_south += (waypoint.south - waypoint.north) * value;
-        self.east_west += (waypoint.east - waypoint.west) * value;
+    fn forward(&mut self, value: isize, waypoint: &Position) {
+        self.position.north += waypoint.north * value;
+        self.position.east += waypoint.east * value;
     }
 }
 
 #[derive(Debug, Clone)]
-struct WayPoint {
+struct Position {
     north: isize,
     east: isize,
-    south: isize,
-    west: isize,
 }
 
-impl WayPoint {
+impl Position {
     fn new() -> Self {
-        Self {
-            north: 1,
-            east: 10,
-            south: 0,
-            west: 0,
-        }
+        Self { north: 1, east: 10 }
     }
 
     fn rotate(&mut self, angle: isize) {
         let waypoint = self.clone();
         match angle {
             90 | -270 => {
-                self.north = waypoint.west;
+                self.north = -waypoint.east;
                 self.east = waypoint.north;
-                self.south = waypoint.east;
-                self.west = waypoint.south;
-            },
+            }
             180 | -180 => {
-                self.north = waypoint.south;
-                self.east = waypoint.west;
-                self.south = waypoint.north;
-                self.west = waypoint.east;
-            },
+                self.north = -waypoint.north;
+                self.east = -waypoint.east;
+            }
             -90 | 270 => {
                 self.north = waypoint.east;
-                self.east = waypoint.south;
-                self.south = waypoint.west;
-                self.west = waypoint.north;
-            },
+                self.east = -waypoint.north;
+            }
             _ => (),
         };
     }
@@ -165,8 +150,8 @@ impl WayPoint {
         match direction {
             Direction::North => self.north += value,
             Direction::East => self.east += value,
-            Direction::South => self.south += value,
-            Direction::West => self.west += value,
+            Direction::South => self.north -= value,
+            Direction::West => self.east -= value,
         };
     }
 }
@@ -201,7 +186,7 @@ fn part1(instructions: &[Instruction]) -> isize {
 
 fn part2(instructions: &[Instruction]) -> isize {
     let mut ship = Ship::new();
-    let mut waypoint = WayPoint::new();
+    let mut waypoint = Position::new();
 
     for instruction in instructions {
         match &instruction.action {
@@ -218,16 +203,6 @@ fn part2(instructions: &[Instruction]) -> isize {
                 ship.forward(instruction.value, &waypoint);
             }
         };
-        // dbg!(&ship, &waypoint);
-        println!("{:?} {}  ---  ship: {}, {}  ---  waypoint: {}, {}, {}, {}",
-            instruction.action,
-            instruction.value,
-            ship.north_south, 
-            ship.east_west,
-            waypoint.north,
-            waypoint.east,
-            waypoint.south,
-            waypoint.west)
     }
 
     ship.manhattan_distance()
@@ -268,5 +243,5 @@ fn test_part1() {
 #[test]
 fn test_part2() {
     assert_eq!(286, part2(&_get_data_test()));
-    // assert_eq!(2032, part2(get_data()));
+    assert_eq!(45763, part2(&get_data()));
 }
