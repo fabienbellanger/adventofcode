@@ -78,38 +78,34 @@ func part1(data notes) int {
 	return (i - 1 - data.depart) * bus
 }
 
+// Algo bien trop lent => trouver mieux :)
 func part2(data notes) int {
 	log.Println(data)
 
 	found := false
 	firstIndex := data.firstBus()
+	nbOk := 0
 
 	var i int
-	nbOk := 0
-	for i = 0; !found; i++ {
-		if i%data.bus[firstIndex] == 0 {
-			nbOk = 0
-			for j := range data.bus {
-				if j != firstIndex {
-					// log.Printf(">>>>> i=%d, j=%d, data.bus[j]=%d\n", i, j, data.bus[j])
-					if (i+j)%data.bus[j] == 0 {
-						nbOk++
-					}
+	for i = 0; !found; i += data.bus[firstIndex] {
+		nbOk = 0
+		for j := range data.bus {
+			if j != firstIndex {
+				// log.Printf(">>>>> i=%d, j=%d, data.bus[j]=%d\n", i, j, data.bus[j])
+				if (i+j)%data.bus[j] == 0 {
+					nbOk++
+				} else {
+					continue
 				}
 			}
-
-			if nbOk == len(data.bus)-1 {
-				found = true
-			}
 		}
 
-		if i < 0 {
-			panic("ERROR")
+		if nbOk == len(data.bus)-1 {
+			found = true
 		}
 	}
-	log.Printf("FOUND = %d\n", i-1)
 
-	return i - 1
+	return i - data.bus[firstIndex]
 }
 
 func getData(file string) (notes, error) {

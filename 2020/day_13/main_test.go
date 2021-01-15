@@ -16,11 +16,33 @@ import (
 // }
 
 func TestPart2(t *testing.T) {
-	notes, err := getData("test_simple.txt")
+	n, err := getData("test_simple.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
-	assert.Equal(t, 3417, part2(notes), "they should be equal")
+
+	assert.Equal(t, 3417, part2(n), "they should be equal")
+	n = notes{
+		depart: 0,
+		bus: map[int]int{
+			0: 67,
+			1: 7,
+			3: 59,
+			4: 61,
+		},
+	}
+	assert.Equal(t, 1261476, part2(n), "they should be equal")
+
+	n = notes{
+		depart: 0,
+		bus: map[int]int{
+			0: 1789,
+			1: 37,
+			2: 47,
+			3: 1889,
+		},
+	}
+	assert.Equal(t, 1202161486, part2(n), "they should be equal")
 
 	// notes, err = getData("test.txt")
 	// if err != nil {
