@@ -5,13 +5,19 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"sort"
 	"strconv"
 )
 
 type notes struct {
 	depart int
-	bus    []int
+	bus    map[int]int
+}
+
+func newNotes() notes {
+	return notes{
+		depart: 0,
+		bus:    make(map[int]int),
+	}
 }
 
 func (n notes) String() string {
@@ -26,6 +32,16 @@ func (n notes) geaterBus() int {
 		}
 	}
 	return max
+}
+
+func (n notes) firstBus() int {
+	min := len(n.bus)
+	for i := range n.bus {
+		if i < min {
+			min = i
+		}
+	}
+	return min
 }
 
 func main() {
@@ -63,11 +79,41 @@ func part1(data notes) int {
 }
 
 func part2(data notes) int {
-	return 0
+	log.Println(data)
+
+	found := false
+	firstIndex := data.firstBus()
+
+	var i int
+	nbOk := 0
+	for i = 0; !found; i++ {
+		if i%data.bus[firstIndex] == 0 {
+			nbOk = 0
+			for j := range data.bus {
+				if j != firstIndex {
+					// log.Printf(">>>>> i=%d, j=%d, data.bus[j]=%d\n", i, j, data.bus[j])
+					if (i+j)%data.bus[j] == 0 {
+						nbOk++
+					}
+				}
+			}
+
+			if nbOk == len(data.bus)-1 {
+				found = true
+			}
+		}
+
+		if i < 0 {
+			panic("ERROR")
+		}
+	}
+	log.Printf("FOUND = %d\n", i-1)
+
+	return i - 1
 }
 
 func getData(file string) (notes, error) {
-	var n notes
+	n := newNotes()
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		return n, err
@@ -80,16 +126,13 @@ func getData(file string) (notes, error) {
 	}
 
 	n.depart, _ = strconv.Atoi(string(lines[0]))
-	for _, b := range bytes.Split(lines[1], []byte(",")) {
+	for index, b := range bytes.Split(lines[1], []byte(",")) {
 		i, err := strconv.Atoi(string(b))
 		if err != nil {
 			continue
 		}
-		n.bus = append(n.bus, i)
+		n.bus[index] = i
 	}
-
-	// Tri des bus
-	sort.Ints(n.bus)
 
 	return n, nil
 }
