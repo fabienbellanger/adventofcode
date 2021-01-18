@@ -1,10 +1,19 @@
 use std::{collections::HashMap, fs};
 use regex::Regex;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Memory {
     val: usize,
     bin: Vec<usize>,
+}
+
+impl Memory {
+    fn init() -> Self {
+        Self {
+            val: 0,
+            bin: vec![0;36],
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -21,32 +30,32 @@ impl Program {
         }
     }
 
-    fn new_memory_value(&self, index: usize) -> usize {
-        let mut new_value = self.memories.get(&index).unwrap().clone();
-        let binary_val = to_binary(new_value);
-        let mut new_binary: HashMap<usize, usize> = HashMap::new();
+    fn new_memory_value(&self, index: usize) -> Memory {
+        let binary = self.memories.get(&index).unwrap();
+        let mut new_value = binary.clone();
 
-        for (index, val) in &binary_val {
+        for (index, _val) in binary.bin.iter().enumerate() {
             match self.mask.get(&index) {
-                Some(v) => new_binary.insert(*index, *v),
-                None => new_binary.insert(*index, *val),
+                Some(v) => new_value.bin[index] = *v,
+                None => (),
             };
         }
 
-        dbg!(&index, &binary_val, &new_binary);
+        // binary => usize
+        let binary: String = new_value.bin.iter().rev().map(|l| l.to_string()).collect();
+        let binary = isize::from_str_radix(&binary, 2).unwrap();
+        new_value.val = binary as usize;
         
-        0
+        new_value
     }
 }
 
-fn to_binary(val: usize) -> HashMap<usize, usize> {
-    let b = format!("{:b}", val);
-    let mut hm = HashMap::new();
-    for (i, v) in b.chars().rev().enumerate() {
-        hm.insert(i, v.to_string().parse().unwrap());
+fn to_binary(memory: &mut Memory) {
+    let bin = format!("{:b}", memory.val);
+    
+    for (i, v) in bin.chars().rev().enumerate() {
+        memory.bin[i] = v.to_string().parse().unwrap();
     }
-
-    hm
 }
 
 fn main() {
@@ -55,13 +64,13 @@ fn main() {
 }
 
 fn part1(programs: &Vec<Program>) -> usize {
-    dbg!(&programs);
-
     let mut sum = 0;
 
     for program in programs {
-        for (mem_index, mem_val) in &program.memories {
-            program.new_memory_value(*mem_index);
+        for (mem_index, _) in &program.memories {
+            let new_memory = program.new_memory_value(*mem_index);
+
+            sum += new_memory.val;
         }
     }
 
@@ -107,7 +116,11 @@ fn construct_programs(lines: Vec<String>) -> Vec<Program> {
             }
             let key: usize = (&cap[1]).parse().unwrap();
             let value: usize = (&cap[2]).parse().unwrap();
-            program.memories.insert(key, value);
+
+            let mut mem = Memory::init();
+            mem.val = value;
+            to_binary(&mut mem);
+            program.memories.insert(key, mem);
         }
     }
     programs.push(program);
