@@ -18,35 +18,14 @@ impl Memory {
 
 #[derive(Debug)]
 struct Program {
-    mask: HashMap<usize, usize>,
     memories: HashMap<usize, Memory>,
 }
 
 impl Program {
     fn init() -> Self {
         Self {
-            mask: HashMap::new(),
             memories: HashMap::new(),
         }
-    }
-
-    fn new_memory_value(&self, index: usize) -> Memory {
-        let binary = self.memories.get(&index).unwrap();
-        let mut new_value = binary.clone();
-
-        for (index, _val) in binary.bin.iter().enumerate() {
-            match self.mask.get(&index) {
-                Some(v) => new_value.bin[index] = *v,
-                None => (),
-            };
-        }
-
-        // binary => usize
-        let binary: String = new_value.bin.iter().rev().map(|l| l.to_string()).collect();
-        let binary = isize::from_str_radix(&binary, 2).unwrap();
-        new_value.val = binary as usize;
-        
-        new_value
     }
 }
 
@@ -58,20 +37,36 @@ fn to_binary(memory: &mut Memory) {
     }
 }
 
+fn apply_mask(memory: &Memory, mask: &HashMap<usize, usize>) -> Memory {
+    let mut new_value = memory.clone();
+
+    println!("OLD={:?}", new_value.bin);
+    for (index, _val) in memory.bin.iter().enumerate() {
+        match mask.get(&index) {
+            Some(v) => new_value.bin[index] = *v,
+            None => (),
+        };
+    }
+    println!("NEW={:?}\n", new_value.bin);
+
+    // binary => usize
+    let binary: String = new_value.bin.iter().rev().map(|l| l.to_string()).collect();
+    let binary = isize::from_str_radix(&binary, 2).unwrap();
+    new_value.val = binary as usize;
+
+    new_value
+}
+
 fn main() {
     println!("Part 1 result: {}", part1(&get_data()));
     // println!("Part 2 result: {}", part2(&get_data()));
 }
 
-fn part1(programs: &Vec<Program>) -> usize {
+fn part1(program: &Program) -> usize {
     let mut sum = 0;
 
-    for program in programs {
-        for (mem_index, _) in &program.memories {
-            let new_memory = program.new_memory_value(*mem_index);
-
-            sum += new_memory.val;
-        }
+    for (_, mem_val) in &program.memories {
+        sum += mem_val.val;
     }
 
     sum
@@ -81,26 +76,22 @@ fn _part2() -> isize {
     0
 }
 
-fn construct_programs(lines: Vec<String>) -> Vec<Program> {
-    let mut programs: Vec<Program> = Vec::new();
+fn construct_programs(lines: Vec<String>) -> Program {
     let re = Regex::new(r"^mem\[(\d+)\] = (\d+)$").unwrap();
-
     let mut program: Program = Program::init();
+    let mut mask = HashMap::new();
+
     for line in &lines {
         if line.contains("mask") {
+            println!("------------------------------------");
             // Mask
             // ----
-            if program.memories.len() > 0 {
-                programs.push(program);
-                program = Program::init();
-            }
-
-            let mask = &line[7..];
-            for (index, bit) in mask.chars().rev().enumerate() {
+            let mask_str = &line[7..];
+            println!("mask={:?}", mask_str);
+            for (index, bit) in mask_str.chars().rev().enumerate() {
                 match bit {
-                    '0' => program.mask.insert(index, 0),
-                    '1' => program.mask.insert(index, 1),
-                    _ => None,
+                    c if c == '0' || c == '1' => &mask.insert(index, c.to_string().parse().unwrap()),
+                    _ => &None,
                 };
             }
         } else {
@@ -120,15 +111,17 @@ fn construct_programs(lines: Vec<String>) -> Vec<Program> {
             let mut mem = Memory::init();
             mem.val = value;
             to_binary(&mut mem);
-            program.memories.insert(key, mem);
+            
+            program.memories.insert(key, apply_mask(&mem, &mask));
         }
     }
-    programs.push(program);
 
-    programs
+    // dbg!(&program);
+
+    program
 }
 
-fn get_data() -> Vec<Program> {
+fn get_data() -> Program {
     let lines: Vec<String> = fs::read_to_string("input.txt")
         .expect("Cannot read the file input.txt")
         .trim()
@@ -139,7 +132,7 @@ fn get_data() -> Vec<Program> {
     construct_programs(lines)
 }
 
-fn _get_data_test() -> Vec<Program> {
+fn _get_data_test() -> Program {
     let lines: Vec<String> = fs::read_to_string("test.txt")
         .expect("Cannot read the file test.txt")
         .trim()
@@ -153,7 +146,7 @@ fn _get_data_test() -> Vec<Program> {
 #[test]
 fn test_part1() {
     assert_eq!(165, part1(&_get_data_test()));
-    // assert_eq!(, part1(&get_data()));
+    assert_eq!(4886706177792, part1(&get_data()));
 }
 
 // #[test]
