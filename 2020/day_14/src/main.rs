@@ -1,93 +1,103 @@
 use std::{collections::HashMap, fs};
 use regex::Regex;
 
-#[derive(Debug, Clone)]
-struct Memory {
-    val: usize,
-    bin: Vec<usize>,
-}
-
-impl Memory {
-    fn init() -> Self {
-        Self {
-            val: 0,
-            bin: vec![0;36],
-        }
-    }
-}
-
-#[derive(Debug)]
-struct Program {
-    memories: HashMap<usize, Memory>,
-}
-
-impl Program {
-    fn init() -> Self {
-        Self {
-            memories: HashMap::new(),
-        }
-    }
-}
-
-fn to_binary(memory: &mut Memory) {
-    let bin = format!("{:b}", memory.val);
-    
-    for (i, v) in bin.chars().rev().enumerate() {
-        memory.bin[i] = v.to_string().parse().unwrap();
-    }
-}
-
-fn apply_mask(memory: &Memory, mask: &HashMap<usize, usize>) -> Memory {
-    let mut new_value = memory.clone();
-
-    println!("OLD={:?}", new_value.bin);
-    for (index, _val) in memory.bin.iter().enumerate() {
-        match mask.get(&index) {
-            Some(v) => new_value.bin[index] = *v,
-            None => (),
-        };
-    }
-    println!("NEW={:?}\n", new_value.bin);
-
-    // binary => usize
-    let binary: String = new_value.bin.iter().rev().map(|l| l.to_string()).collect();
-    let binary = isize::from_str_radix(&binary, 2).unwrap();
-    new_value.val = binary as usize;
-
-    new_value
-}
-
 fn main() {
-    println!("Part 1 result: {}", part1(&get_data()));
+    println!("Part 1 result: {}", part1(get_data()));
     // println!("Part 2 result: {}", part2(&get_data()));
 }
 
-fn part1(program: &Program) -> usize {
-    let mut sum = 0;
-
-    for (_, mem_val) in &program.memories {
-        sum += mem_val.val;
-    }
-
-    sum
+fn part1(program: HashMap<usize, usize>) -> usize {
+    program.values().sum()
 }
 
 fn _part2() -> isize {
     0
 }
 
-fn construct_programs(lines: Vec<String>) -> Program {
+fn get_data() -> HashMap<usize, usize> {
+    let lines: Vec<String> = fs::read_to_string("input.txt")
+        .expect("Cannot read the file input.txt")
+        .trim()
+        .lines()
+        .map(|l| l.to_owned())
+        .collect();
+
+    construct_program(lines)
+}
+
+fn _get_data_test() -> HashMap<usize, usize> {
+    let lines: Vec<String> = fs::read_to_string("test.txt")
+        .expect("Cannot read the file test.txt")
+        .trim()
+        .lines()
+        .map(|l| l.to_owned())
+        .collect();
+
+    construct_program(lines)
+}
+
+// GOOD
+fn number_to_binary(value: usize) -> Vec<usize> {
+    let binary = vec![0;36];
+    let mut new_binary = binary.clone();
+    let val_to_bin: Vec<usize> = format!("{:b}", value)
+        .chars()
+        .map(|c| {
+            c.to_string().parse().unwrap()
+        })
+        .rev()
+        .collect();
+    
+    for (i, _) in binary.iter().enumerate() {
+        if let Some(bit) = val_to_bin.get(i) {
+            new_binary[i] = *bit;
+        }
+    }
+    
+    new_binary
+}
+
+// GOOD
+fn binary_to_number(binary: Vec<usize>) -> usize {
+    let mut value = 0;
+
+    for (i, b) in binary.iter().enumerate() {
+        value += *b * 2usize.pow(i as u32);
+    }
+
+    value
+}
+
+#[test]
+fn test_binary_to_number() {
+    assert_eq!(125580, binary_to_number(vec![0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
+}
+
+fn apply_mask(binaray: Vec<usize>, mask: &HashMap<usize, usize>) -> Vec<usize> {
+    let mut new_binary = Vec::new();
+
+    for (i, bit) in binaray.iter().enumerate() {
+        match mask.get(&i) {
+            Some(b) => new_binary.push(*b),
+            None => new_binary.push(*bit),
+        }
+    }
+
+    new_binary
+}
+
+fn construct_program(lines: Vec<String>) -> HashMap<usize, usize> {
     let re = Regex::new(r"^mem\[(\d+)\] = (\d+)$").unwrap();
-    let mut program: Program = Program::init();
-    let mut mask = HashMap::new();
+    let mut mask: HashMap<usize, usize> = HashMap::new();
+    let mut addresses: HashMap<usize, usize> = HashMap::new();
 
     for line in &lines {
         if line.contains("mask") {
-            println!("------------------------------------");
             // Mask
             // ----
+            mask = HashMap::new();
+
             let mask_str = &line[7..];
-            println!("mask={:?}", mask_str);
             for (index, bit) in mask_str.chars().rev().enumerate() {
                 match bit {
                     c if c == '0' || c == '1' => &mask.insert(index, c.to_string().parse().unwrap()),
@@ -107,46 +117,19 @@ fn construct_programs(lines: Vec<String>) -> Program {
             }
             let key: usize = (&cap[1]).parse().unwrap();
             let value: usize = (&cap[2]).parse().unwrap();
+            let value = binary_to_number(apply_mask(number_to_binary(value), &mask));
 
-            let mut mem = Memory::init();
-            mem.val = value;
-            to_binary(&mut mem);
-            
-            program.memories.insert(key, apply_mask(&mem, &mask));
+            addresses.insert(key, value);
         }
     }
 
-    // dbg!(&program);
-
-    program
-}
-
-fn get_data() -> Program {
-    let lines: Vec<String> = fs::read_to_string("input.txt")
-        .expect("Cannot read the file input.txt")
-        .trim()
-        .lines()
-        .map(|l| l.to_owned())
-        .collect();
-
-    construct_programs(lines)
-}
-
-fn _get_data_test() -> Program {
-    let lines: Vec<String> = fs::read_to_string("test.txt")
-        .expect("Cannot read the file test.txt")
-        .trim()
-        .lines()
-        .map(|l| l.to_owned())
-        .collect();
-
-    construct_programs(lines)
+    addresses
 }
 
 #[test]
 fn test_part1() {
-    assert_eq!(165, part1(&_get_data_test()));
-    assert_eq!(4886706177792, part1(&get_data()));
+    assert_eq!(165, part1(_get_data_test()));
+    assert_eq!(4886706177792, part1(get_data()));
 }
 
 // #[test]
