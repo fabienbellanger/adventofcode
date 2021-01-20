@@ -3,14 +3,14 @@ use regex::Regex;
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data()));
-    // println!("Part 2 result: {}", part2(&get_data()));
+    println!("Part 2 result: {}", part2(get_data()));
 }
 
 fn part1(program: HashMap<usize, usize>) -> usize {
     program.values().sum()
 }
 
-fn _part2() -> isize {
+fn part2(program: HashMap<usize, usize>) -> isize {
     0
 }
 
@@ -28,6 +28,17 @@ fn get_data() -> HashMap<usize, usize> {
 fn _get_data_test() -> HashMap<usize, usize> {
     let lines: Vec<String> = fs::read_to_string("test.txt")
         .expect("Cannot read the file test.txt")
+        .trim()
+        .lines()
+        .map(|l| l.to_owned())
+        .collect();
+
+    construct_program(lines)
+}
+
+fn _get_data_test_2() -> HashMap<usize, usize> {
+    let lines: Vec<String> = fs::read_to_string("test2.txt")
+        .expect("Cannot read the file test2.txt")
         .trim()
         .lines()
         .map(|l| l.to_owned())
@@ -66,11 +77,6 @@ fn binary_to_number(binary: Vec<usize>) -> usize {
     }
 
     value
-}
-
-#[test]
-fn test_binary_to_number() {
-    assert_eq!(125580, binary_to_number(vec![0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
 }
 
 fn apply_mask(binaray: Vec<usize>, mask: &HashMap<usize, usize>) -> Vec<usize> {
@@ -126,14 +132,42 @@ fn construct_program(lines: Vec<String>) -> HashMap<usize, usize> {
     addresses
 }
 
+fn _combine(add: Vec<usize>, perm: &Vec<usize>, index: usize) -> Vec<Vec<usize>> {
+    if index == perm.len() {
+        return vec![add];
+    }
+    
+    let mut add1 = add.clone();
+    let mut add2 = add.clone();
+    add1[perm[index]] = 0;
+    add2[perm[index]] = 1;
+    
+    let mut p1 = combine(add1, &perm, index+1);
+    let mut p2 = combine(add2, &perm, index+1);
+    // dbg!(&perm, &p1, &p2);
+    p1.append(&mut p2);
+    
+    p1
+}
+
+#[test]
+fn test_binary_to_number() {
+    assert_eq!(125580, binary_to_number(vec![0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
+}
+
+#[test]
+fn test_number_to_binary() {
+    assert_eq!(vec![0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], number_to_binary(125580));
+}
+
 #[test]
 fn test_part1() {
     assert_eq!(165, part1(_get_data_test()));
     assert_eq!(4886706177792, part1(get_data()));
 }
 
-// #[test]
-// fn test_part2() {
-//     assert_eq!(, part2(&_get_data_test()));
-//     assert_eq!(, part2(&get_data()));
-// }
+#[test]
+fn test_part2() {
+    assert_eq!(208, part2(_get_data_test_2()));
+    // assert_eq!(, part2(get_data()));
+}
