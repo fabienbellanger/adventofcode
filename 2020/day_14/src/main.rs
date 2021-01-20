@@ -222,5 +222,5 @@ fn test_part1() {
 #[test]
 fn test_part2() {
     assert_eq!(208, part2(construct_program_2(_get_data_test_2())));
-    // assert_eq!(, part2(get_data()));
+    assert_eq!(3348493585827, part2(construct_program_2(get_data())));
 }

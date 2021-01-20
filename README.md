@@ -16,8 +16,8 @@
 -  [x] Day 11 : Rust
 -  [x] Day 12 : Rust
 -  [x] Day 13 : Go
--  [ ] Day 14 : 
--  [ ] Day 15 : 
+-  [x] Day 14 : Rust
+-  [ ] Day 15 : Go
 -  [ ] Day 16 : 
 -  [ ] Day 17 : 
 -  [ ] Day 18 : 
