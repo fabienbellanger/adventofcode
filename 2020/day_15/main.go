@@ -7,23 +7,31 @@ import (
 )
 
 func main() {
-	input := "18,8,0,5,4,1,20"
-	data := inputToArray(input)
-	fmt.Printf("data=%v\n", data)
+	data := inputToArray("18,8,0,5,4,1,20")
 
-	part1 := part1()
-	fmt.Println("Part 1 result:", part1)
-
-	part2 := part2()
-	fmt.Println("Part 2 result:", part2)
+	fmt.Println("Part 1 result:", calculate(data, 2020))
+	fmt.Println("Part 2 result:", calculate(data, 30000000))
 }
 
-func part1() string {
-	return ""
-}
+func calculate(data []int, year int) int {
+	used := make(map[int]int)
+	for i, v := range data {
+		if i < len(data)-1 {
+			used[v] = i
+		}
+	}
+	value := data[len(data)-1]
+	for i := len(data) - 1; i < year-1; i++ {
+		lastIndex, ok := used[value]
+		newValue := 0
+		if ok {
+			newValue = i - lastIndex
+		}
+		used[value] = i
+		value = newValue
+	}
 
-func part2() string {
-	return ""
+	return value
 }
 
 func inputToArray(input string) []int {
