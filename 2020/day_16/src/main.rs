@@ -4,30 +4,35 @@ use std::fs;
 type Ticket = Vec<usize>;
 
 #[derive(Debug)]
-struct Interval {
-    min: usize,
-    max: usize,
+struct Field {
+    name: String,
+    min_1: usize,
+    max_1: usize,
+    min_2: usize,
+    max_2: usize,
 }
 
 #[derive(Debug)]
 struct Note {
-    intervals: Vec<Interval>,
+    fields: Vec<Field>,
     ticket: Ticket,
     nearby_tickets: Vec<Ticket>,
 }
 
 impl Note {
-    fn new(intervals: Vec<Interval>, ticket: Ticket, nearby_tickets: Vec<Ticket>) -> Self {
+    fn new(fields: Vec<Field>, ticket: Ticket, nearby_tickets: Vec<Ticket>) -> Self {
         Self {
-            intervals,
+            fields,
             ticket,
             nearby_tickets,
         }
     }
 
-    fn is_ticket_values_in_intervals(&self, value: usize) -> bool {
-        for interval in &self.intervals {
-            if value >= interval.min && value <= interval.max {
+    fn is_ticket_values_in_fields(&self, value: usize) -> bool {
+        for interval in &self.fields {
+            if value >= interval.min_1 && value <= interval.max_1
+                || value >= interval.min_2 && value <= interval.max_2
+            {
                 return true;
             }
         }
@@ -44,7 +49,7 @@ fn part1(note: Note) -> usize {
     let mut incorrect_values = Vec::new();
     for ticket in &note.nearby_tickets {
         for value in ticket {
-            if !note.is_ticket_values_in_intervals(*value) {
+            if !note.is_ticket_values_in_fields(*value) {
                 incorrect_values.push(*value);
             }
         }
@@ -74,25 +79,24 @@ fn get_note(data: String) -> Note {
     let nearby_tickets_str = parts.next().unwrap();
 
     // Ranges
-    let ranges_regex = Regex::new(r"^[\w ]+: (\d+)-(\d+) or (\d+)-(\d+)$").unwrap();
-    let mut intervals: Vec<Interval> = Vec::new();
+    let ranges_regex = Regex::new(r"^([\w ]+): (\d+)-(\d+) or (\d+)-(\d+)$").unwrap();
+    let mut fields: Vec<Field> = Vec::new();
     for line in ranges.trim().lines() {
         if !ranges_regex.is_match(line) {
             panic!("Invalid range");
         }
 
         let cap = ranges_regex.captures(line).unwrap();
-        if cap.len() != 5 {
-            panic!("Invalid range (match len != 5)");
+        if cap.len() != 6 {
+            panic!("Invalid range");
         }
 
-        intervals.push(Interval {
-            min: (&cap[1]).parse().unwrap(),
-            max: (&cap[2]).parse().unwrap(),
-        });
-        intervals.push(Interval {
-            min: (&cap[3]).parse().unwrap(),
-            max: (&cap[4]).parse().unwrap(),
+        fields.push(Field {
+            name: (&cap[1].to_string()).clone(),
+            min_1: (&cap[2]).parse().unwrap(),
+            max_1: (&cap[3]).parse().unwrap(),
+            min_2: (&cap[4]).parse().unwrap(),
+            max_2: (&cap[5]).parse().unwrap(),
         });
     }
 
@@ -105,14 +109,14 @@ fn get_note(data: String) -> Note {
         .map(|n| n.parse().unwrap())
         .collect();
 
-    // Nearby tickets
-    let mut nearby_tickets: Vec<Ticket> = Vec::new();
-    for line in nearby_tickets_str.trim().lines().skip(1) {
-        let ticket: Ticket = line.split(',').map(|n| n.parse().unwrap()).collect();
-        nearby_tickets.push(ticket);
-    }
+    let nearby_tickets: Vec<Ticket> = nearby_tickets_str
+        .trim()
+        .lines()
+        .skip(1)
+        .map(|line| line.split(',').map(|n| n.parse().unwrap()).collect())
+        .collect();
 
-    Note::new(intervals, ticket, nearby_tickets)
+    Note::new(fields, ticket, nearby_tickets)
 }
 
 #[test]
