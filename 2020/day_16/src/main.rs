@@ -6,10 +6,10 @@ type Ticket = Vec<usize>;
 #[derive(Debug)]
 struct Field {
     name: String,
-    min_1: usize,
-    max_1: usize,
-    min_2: usize,
-    max_2: usize,
+    min_1: usize, // TODO: Utiliser un Range
+    max_1: usize, // |----------------------
+    min_2: usize, // TODO: Utiliser un Range
+    max_2: usize, // |----------------------
 }
 
 #[derive(Debug)]
