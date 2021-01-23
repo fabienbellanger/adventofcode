@@ -1,15 +1,13 @@
 use regex::Regex;
-use std::fs;
+use std::{fs, ops::Range};
 
 type Ticket = Vec<usize>;
 
 #[derive(Debug)]
 struct Field {
     name: String,
-    min_1: usize, // TODO: Utiliser un Range
-    max_1: usize, // |----------------------
-    min_2: usize, // TODO: Utiliser un Range
-    max_2: usize, // |----------------------
+    range1: Range<usize>,
+    range2: Range<usize>,
 }
 
 #[derive(Debug)]
@@ -30,9 +28,7 @@ impl Note {
 
     fn is_ticket_values_in_fields(&self, value: usize) -> bool {
         for interval in &self.fields {
-            if value >= interval.min_1 && value <= interval.max_1
-                || value >= interval.min_2 && value <= interval.max_2
-            {
+            if interval.range1.contains(&value) || interval.range2.contains(&value) {
                 return true;
             }
         }
@@ -93,10 +89,14 @@ fn get_note(data: String) -> Note {
 
         fields.push(Field {
             name: (&cap[1].to_string()).clone(),
-            min_1: (&cap[2]).parse().unwrap(),
-            max_1: (&cap[3]).parse().unwrap(),
-            min_2: (&cap[4]).parse().unwrap(),
-            max_2: (&cap[5]).parse().unwrap(),
+            range1: Range { 
+                start: (&cap[2]).parse().unwrap(), 
+                end: (&cap[3]).parse::<usize>().unwrap() + 1,
+            },
+            range2: Range { 
+                start: (&cap[4]).parse().unwrap(), 
+                end: (&cap[5]).parse::<usize>().unwrap() + 1,
+            },
         });
     }
 
