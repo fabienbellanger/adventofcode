@@ -1,9 +1,9 @@
 use regex::Regex;
-use std::{fs, ops::Range};
+use std::{collections::HashSet, fs, ops::Range};
 
 type Ticket = Vec<usize>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 struct Field {
     name: String,
     range1: Range<usize>,
@@ -27,12 +27,26 @@ impl Note {
     }
 
     fn is_ticket_values_in_fields(&self, value: usize) -> bool {
-        for interval in &self.fields {
-            if interval.range1.contains(&value) || interval.range2.contains(&value) {
+        for field in &self.fields {
+            if field.range1.contains(&value) || field.range2.contains(&value) {
                 return true;
             }
         }
         false
+    }
+
+    fn get_right_fields(&self, columun: Vec<usize>) -> Vec<Field> {
+        let mut correct = self.fields.clone();
+        for value in &columun {
+            let mut i = 0usize;
+            for field in &self.fields {
+                if correct.get(i).is_some() && !field.range1.contains(&value) && !field.range2.contains(&value) {
+                    correct.remove(i);
+                }
+                i += 1;
+            }
+        }
+        correct
     }
 }
 
@@ -54,8 +68,42 @@ fn part1(note: Note) -> usize {
     incorrect_values.iter().sum()
 }
 
-fn part2(_note: Note) -> usize {
-    0
+fn part2(note: Note) -> usize {
+    let mut combinaisons: Vec<Vec<Field>> = Vec::new();
+    for col in 0..note.fields.len() {
+        let cols = note.nearby_tickets
+            .iter()
+            .map(|ticket| {
+                ticket[col]
+            })
+            .collect();
+        combinaisons.push(note.get_right_fields(cols));
+    }
+    dbg!(&combinaisons);
+
+    let mut best_combinaison: Vec<Field> = Vec::new();
+    for combinaison in &combinaisons {
+        for choice in combinaison {
+            if best_combinaison.contains(&choice) {
+                continue;
+            } else {
+                best_combinaison.push((*choice).clone());
+                break;
+            }
+        }
+    }
+
+    dbg!(&best_combinaison);
+
+    let mut result = 1;
+    for (index, combinaison) in best_combinaison.iter().enumerate() {
+        if combinaison.name.contains("departure") {
+            dbg!(note.ticket[index]);
+            result *= note.ticket[index];
+        }
+    }
+    
+    result
 }
 
 fn get_data() -> Note {
@@ -65,6 +113,11 @@ fn get_data() -> Note {
 
 fn _get_data_test() -> Note {
     let data = fs::read_to_string("test.txt").expect("Cannot read the file test.txt");
+    get_note(data)
+}
+
+fn _get_data_test2() -> Note {
+    let data = fs::read_to_string("test2.txt").expect("Cannot read the file test2.txt");
     get_note(data)
 }
 
@@ -127,6 +180,7 @@ fn test_part1() {
 
 #[test]
 fn test_part2() {
-    // assert_eq!(208, part2(_get_data_test()));
+    assert_eq!(208, part2(get_data()));
+    // assert_eq!(208, part2(_get_data_test2()));
     // assert_eq!(3348493585827, part2());
 }
