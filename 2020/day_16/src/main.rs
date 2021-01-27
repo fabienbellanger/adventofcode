@@ -1,24 +1,27 @@
 use regex::Regex;
-use std::{collections::HashSet, fs, ops::Range};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+    ops::Range,
+};
 
 type Ticket = Vec<usize>;
 
 #[derive(Debug, Clone, PartialEq)]
-struct Field {
-    name: String,
+struct Ranges {
     range1: Range<usize>,
     range2: Range<usize>,
 }
 
 #[derive(Debug)]
 struct Note {
-    fields: Vec<Field>,
+    fields: HashMap<String, Ranges>,
     ticket: Ticket,
     nearby_tickets: Vec<Ticket>,
 }
 
 impl Note {
-    fn new(fields: Vec<Field>, ticket: Ticket, nearby_tickets: Vec<Ticket>) -> Self {
+    fn new(fields: HashMap<String, Ranges>, ticket: Ticket, nearby_tickets: Vec<Ticket>) -> Self {
         Self {
             fields,
             ticket,
@@ -27,26 +30,29 @@ impl Note {
     }
 
     fn is_ticket_values_in_fields(&self, value: usize) -> bool {
-        for field in &self.fields {
-            if field.range1.contains(&value) || field.range2.contains(&value) {
+        for (_name, ranges) in &self.fields {
+            if ranges.range1.contains(&value) || ranges.range2.contains(&value) {
                 return true;
             }
         }
         false
     }
 
-    fn get_right_fields(&self, columun: Vec<usize>) -> Vec<Field> {
-        let mut correct = self.fields.clone();
-        for value in &columun {
-            let mut i = 0usize;
-            for field in &self.fields {
-                if correct.get(i).is_some() && !field.range1.contains(&value) && !field.range2.contains(&value) {
-                    correct.remove(i);
-                }
-                i += 1;
+    fn is_ticket_values_for_field(&self, field_name: &String, value: usize) -> bool {
+        let field = self.fields.get(field_name).unwrap();
+        if field.range1.contains(&value) || field.range2.contains(&value) {
+            return true;
+        }
+        false
+    }
+
+    fn is_ticket_in_fields(&self, ticket: &Ticket) -> bool {
+        for value in ticket {
+            if !self.is_ticket_values_in_fields(*value) {
+                return false;
             }
         }
-        correct
+        true
     }
 }
 
@@ -69,41 +75,68 @@ fn part1(note: Note) -> usize {
 }
 
 fn part2(note: Note) -> usize {
-    let mut combinaisons: Vec<Vec<Field>> = Vec::new();
-    for col in 0..note.fields.len() {
-        let cols = note.nearby_tickets
-            .iter()
-            .map(|ticket| {
-                ticket[col]
-            })
-            .collect();
-        combinaisons.push(note.get_right_fields(cols));
+    let mut nearby_tickets: Vec<&Ticket> = Vec::new();
+    for ticket in &note.nearby_tickets {
+        if note.is_ticket_in_fields(&ticket) {
+            nearby_tickets.push(ticket);
+        }
     }
-    dbg!(&combinaisons);
 
-    let mut best_combinaison: Vec<Field> = Vec::new();
-    for combinaison in &combinaisons {
-        for choice in combinaison {
-            if best_combinaison.contains(&choice) {
+    let ordered_fields = get_ordered_fields(&note, nearby_tickets);
+    ordered_fields
+        .iter()
+        .filter(|(_value, name)| name.contains("departure"))
+        .map(|(value, _name)| note.ticket[*value])
+        .product()
+}
+
+fn get_ordered_fields(note: &Note, tickets: Vec<&Ticket>) -> HashMap<usize, String> {
+    let mut solution: HashMap<usize, String> = HashMap::new();
+    let mut solution_names: HashSet<String> = HashSet::new();
+    let fields_number = note.fields.len();
+    let fields = &note.fields;
+
+    let mut loops = 0;
+    while solution.len() < fields_number && loops < fields_number.pow(2) {
+        for (name, _ranges) in fields {
+            if solution_names.contains(name) {
                 continue;
-            } else {
-                best_combinaison.push((*choice).clone());
-                break;
+            }
+
+            let mut column = 0usize;
+            let mut found = false;
+            let mut found_more = false;
+
+            for col in 0..fields_number {
+                if solution.contains_key(&col) {
+                    continue;
+                }
+
+                let valid_tickets = tickets.iter().all(|ticket| {
+                    note.is_ticket_values_for_field(name, *(ticket.get(col).unwrap()))
+                });
+
+                if valid_tickets {
+                    if found {
+                        found_more = true;
+                        break;
+                    }
+
+                    found = true;
+                    column = col;
+                }
+            }
+
+            if found && !found_more {
+                solution.insert(column, name.clone());
+                solution_names.insert(name.clone());
             }
         }
+
+        loops += 1;
     }
 
-    dbg!(&best_combinaison);
-
-    let mut result = 1;
-    for (index, combinaison) in best_combinaison.iter().enumerate() {
-        if combinaison.name.contains("departure") {
-            dbg!(note.ticket[index]);
-            result *= note.ticket[index];
-        }
-    }
-    
-    result
+    solution
 }
 
 fn get_data() -> Note {
@@ -127,9 +160,9 @@ fn get_note(data: String) -> Note {
     let ticket_str = parts.next().unwrap();
     let nearby_tickets_str = parts.next().unwrap();
 
-    // Ranges
+    // Fields
     let ranges_regex = Regex::new(r"^([\w ]+): (\d+)-(\d+) or (\d+)-(\d+)$").unwrap();
-    let mut fields: Vec<Field> = Vec::new();
+    let mut fields: HashMap<String, Ranges> = HashMap::new();
     for line in ranges.trim().lines() {
         if !ranges_regex.is_match(line) {
             panic!("Invalid range");
@@ -140,17 +173,19 @@ fn get_note(data: String) -> Note {
             panic!("Invalid range");
         }
 
-        fields.push(Field {
-            name: (&cap[1].to_string()).clone(),
-            range1: Range { 
-                start: (&cap[2]).parse().unwrap(), 
-                end: (&cap[3]).parse::<usize>().unwrap() + 1,
+        fields.insert(
+            (&cap[1].to_string()).clone(),
+            Ranges {
+                range1: Range {
+                    start: (&cap[2]).parse().unwrap(),
+                    end: (&cap[3]).parse::<usize>().unwrap() + 1,
+                },
+                range2: Range {
+                    start: (&cap[4]).parse().unwrap(),
+                    end: (&cap[5]).parse::<usize>().unwrap() + 1,
+                },
             },
-            range2: Range { 
-                start: (&cap[4]).parse().unwrap(), 
-                end: (&cap[5]).parse::<usize>().unwrap() + 1,
-            },
-        });
+        );
     }
 
     // Your ticket
@@ -162,6 +197,7 @@ fn get_note(data: String) -> Note {
         .map(|n| n.parse().unwrap())
         .collect();
 
+    // Nearby tickets
     let nearby_tickets: Vec<Ticket> = nearby_tickets_str
         .trim()
         .lines()
@@ -180,7 +216,5 @@ fn test_part1() {
 
 #[test]
 fn test_part2() {
-    assert_eq!(208, part2(get_data()));
-    // assert_eq!(208, part2(_get_data_test2()));
-    // assert_eq!(3348493585827, part2());
+    assert_eq!(1053686852011, part2(get_data()));
 }
