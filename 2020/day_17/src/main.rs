@@ -37,15 +37,30 @@ impl Cube {
 
 #[derive(Debug)]
 struct Level {
-    z: usize,
+    z: isize,
     cubes: Vec<Cube>,
 }
 
 impl Level {
-    fn new(z: usize, cubes: Vec<Cube>) -> Self {
+    fn new(z: isize, cubes: Vec<Cube>) -> Self {
         Self {
             z,
             cubes,
+        }
+    }
+}
+
+#[derive(Debug)]
+struct PocketDimension {
+    levels: Vec<Level>,
+    height: usize,
+}
+
+impl PocketDimension {
+    fn new(level: Level) -> Self {
+        Self {
+            height: 1,
+            levels: vec![level],
         }
     }
 }
@@ -55,12 +70,14 @@ fn main() {
 }
 
 fn part1(initial_level: Level) -> usize {
-    dbg!(&initial_level);
+    let mut pocket_dimension = PocketDimension::new(initial_level);
+    dbg!(&pocket_dimension);
+
+
     0
 }
 
 fn get_data(file: &str) -> Level {
-    let level = Level::new(0, Vec::new());
     let cubes: Vec<Cube> = fs::read_to_string(file).expect("Cannot read file")
         .trim()
         .lines()
