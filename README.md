@@ -21,7 +21,7 @@
 -  [x] Day 16 : Rust
 -  [x] Day 17 : Rust
 -  [x] Day 18 : Rust
--  [ ] Day 19 : 
+-  [ ] Day 19 : Rust
 -  [ ] Day 20 : 
 -  [ ] Day 21 : 
 -  [ ] Day 22 : 
