@@ -20,7 +20,7 @@
 -  [x] Day 15 : Go
 -  [x] Day 16 : Rust
 -  [x] Day 17 : Rust
--  [ ] Day 18 : Rust / (Go)
+-  [x] Day 18 : Rust
 -  [ ] Day 19 : 
 -  [ ] Day 20 : 
 -  [ ] Day 21 : 

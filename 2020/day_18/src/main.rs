@@ -13,9 +13,18 @@ fn main() {
     let input = fs::read_to_string("input.txt").expect("Cannot find input.txt");
 
     println!("Part 1 result: {}", part1(get_data(&input)));
+    println!("Part 2 result: {}", part2(get_data(&input)));
 }
 
 fn part1(data: Vec<Vec<Value>>) -> usize {
+    calculate_sum(data, "part1")
+}
+
+fn part2(data: Vec<Vec<Value>>) -> usize {
+    calculate_sum(data, "part2")
+}
+
+fn calculate_sum(data: Vec<Vec<Value>>, part: &str) -> usize {
     let mut sum = 0;
 
     for line in &data {
@@ -36,12 +45,16 @@ fn part1(data: Vec<Vec<Value>>) -> usize {
                             if sub_line.contains(&Value::Open) {
                                 continue;
                             } else {
-                                let val = calculate_expression_without_bracket(sub_line);
+                                let val = match part {
+                                    "part1" => calculate_expression_without_bracket(sub_line),
+                                    "part2" => calculate_expression_without_bracket_2(sub_line),
+                                    _ => panic!("Invalid part"),
+                                };
                                 for _i in 0..index - opened {
                                     clone_line.remove(opened);
                                 }
                                 clone_line[opened] = Value::Num(val);
-                                
+
                                 break;
                             }
                         }
@@ -53,7 +66,11 @@ fn part1(data: Vec<Vec<Value>>) -> usize {
             new_line = clone_line;
         }
 
-        sum += calculate_expression_without_bracket(&new_line);
+        sum += match part {
+            "part1" => calculate_expression_without_bracket(&new_line),
+            "part2" => calculate_expression_without_bracket_2(&new_line),
+            _ => panic!("Invalid part"),
+        };
     }
 
     sum
@@ -90,6 +107,39 @@ fn calculate_expression_without_bracket(line: &[Value]) -> usize {
     }
 
     result
+}
+
+fn calculate_expression_without_bracket_2(line: &[Value]) -> usize {
+    // On calcule d'abord toutes les additions
+    let mut new_line = line.to_vec();
+    while new_line.contains(&Value::Add) {
+        let mut clone_line = new_line.clone();
+
+        for (index, e) in new_line.iter().enumerate() {
+            if let Value::Add = e {
+                let prev = match new_line[index - 1] {
+                    Value::Num(v) => v,
+                    _ => 0,
+                };
+                let next = match new_line[index + 1] {
+                    Value::Num(v) => v,
+                    _ => 0,
+                };
+                let sum = Value::Num(prev + next);
+
+                clone_line.remove(index);
+                clone_line.remove(index);
+                clone_line[index - 1] = sum;
+
+                break;
+            }
+        }
+
+        new_line = clone_line;
+    }
+
+    // Il ne reste plus que les multiplications
+    calculate_expression_without_bracket(&new_line)
 }
 
 fn get_data(data: &str) -> Vec<Vec<Value>> {
@@ -179,4 +229,33 @@ fn test_part1() {
 
     let input = fs::read_to_string("input.txt").expect("Cannot find input.txt");
     assert_eq!(25190263477788, part1(get_data(&input)));
+}
+
+#[test]
+fn test_calculate_expression_without_bracket_2() {
+    let data = get_data("1 + 2 * 3 + 4 * 5 + 6");
+    let data = &data[0];
+    assert_eq!(231, calculate_expression_without_bracket_2(data));
+
+    let data = get_data("8 * 2 * 5 + 1 + 3 * 6");
+    let data = &data[0];
+    assert_eq!(864, calculate_expression_without_bracket_2(data));
+}
+
+#[test]
+fn test_part2() {
+    assert_eq!(51, part2(get_data("1 + (2 * 3) + (4 * (5 + 6))")));
+    assert_eq!(46, part2(get_data("2 * 3 + (4 * 5)")));
+    assert_eq!(1445, part2(get_data("5 + (8 * 3 + 9 + 3 * 4 * 3)")));
+    assert_eq!(
+        669060,
+        part2(get_data("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))"))
+    );
+    assert_eq!(
+        23340,
+        part2(get_data("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2"))
+    );
+
+    let input = fs::read_to_string("input.txt").expect("Cannot find input.txt");
+    assert_eq!(297139939002972, part2(get_data(&input)));
 }
