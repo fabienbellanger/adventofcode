@@ -37,7 +37,11 @@ fn part1(data: (HashMap<usize, Rule>, Vec<String>)) -> usize {
     result
 }
 
-fn get_all_messages(rules: &HashMap<usize, Rule>, index: usize, previous_messages: &Vec<String>) -> Vec<String> {
+fn get_all_messages(
+    rules: &HashMap<usize, Rule>,
+    index: usize,
+    previous_messages: &[String],
+) -> Vec<String> {
     let mut messages = Vec::new();
 
     let rule = rules.get(&index).unwrap();
@@ -59,8 +63,8 @@ fn get_all_messages(rules: &HashMap<usize, Rule>, index: usize, previous_message
         let mut tmp = vec![];
 
         for part in rule.rules.iter() {
-            let mut previous_merge = previous_messages.clone();
-            
+            let mut previous_merge = previous_messages.to_owned();
+
             for i in part {
                 let result = get_all_messages(&rules, *i, &previous_merge);
                 previous_merge = result;
@@ -150,7 +154,10 @@ abbbab
 aaabbb
 aaaabbb"#;
     let data = get_data(input);
-    assert_eq!(vec!["aaaabb", "abbabb", "aaabab", "abbbab", "aabaab", "abaaab", "aabbbb", "ababbb"], get_all_messages(&data.0, 0, &vec![]));
+    assert_eq!(
+        vec!["aaaabb", "abbabb", "aaabab", "abbbab", "aabaab", "abaaab", "aabbbb", "ababbb"],
+        get_all_messages(&data.0, 0, &vec![])
+    );
 }
 
 #[test]
