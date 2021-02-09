@@ -23,7 +23,56 @@ fn main() {
 }
 
 fn part1(data: (HashMap<usize, Rule>, Vec<String>)) -> usize {
-    0
+    let possible_messages = get_all_messages(&data.0, 0, &vec![]);
+
+    let mut result = 0;
+    let messages = data.1;
+
+    for message in messages {
+        if possible_messages.contains(&message) {
+            result += 1;
+        }
+    }
+
+    result
+}
+
+fn get_all_messages(rules: &HashMap<usize, Rule>, index: usize, previous_messages: &Vec<String>) -> Vec<String> {
+    let mut messages = Vec::new();
+
+    let rule = rules.get(&index).unwrap();
+
+    if !rule.val.is_empty() {
+        if previous_messages.is_empty() {
+            messages.push(rule.val.clone());
+        } else {
+            messages = previous_messages
+                .iter()
+                .map(|message| {
+                    let mut m = message.clone();
+                    m.push_str(&rule.val);
+                    m
+                })
+                .collect();
+        }
+    } else {
+        let mut tmp = vec![];
+
+        for part in rule.rules.iter() {
+            let mut previous_merge = previous_messages.clone();
+            
+            for i in part {
+                let result = get_all_messages(&rules, *i, &previous_merge);
+                previous_merge = result;
+            }
+
+            tmp.append(&mut previous_merge);
+        }
+
+        messages = tmp;
+    }
+
+    messages
 }
 
 fn parse_rules_line(line: &str) -> (usize, Rule) {
@@ -76,8 +125,18 @@ fn get_data(data: &str) -> (HashMap<usize, Rule>, Vec<String>) {
 }
 
 #[test]
-fn test_part1() {
-    let _input = r#"
+fn test_get_all_messages() {
+    let input = r#"
+0: 1 1
+1: 2 3
+2: "a"
+3: "b"
+
+abab"#;
+    let data = get_data(input);
+    assert_eq!(vec!["abab"], get_all_messages(&data.0, 0, &vec![]));
+
+    let input = r#"
 0: 4 1 5
 1: 2 3 | 3 2
 2: 4 4 | 5 5
@@ -90,7 +149,38 @@ bababa
 abbbab
 aaabbb
 aaaabbb"#;
-    assert_eq!(2, part1(get_data(_input)));
+    let data = get_data(input);
+    assert_eq!(vec!["aaaabb", "abbabb", "aaabab", "abbbab", "aabaab", "abaaab", "aabbbb", "ababbb"], get_all_messages(&data.0, 0, &vec![]));
+}
+
+#[test]
+fn test_part1() {
+    let input = r#"
+0: 1 1
+1: 2 3
+2: "a"
+3: "b"
+
+abab"#;
+    assert_eq!(1, part1(get_data(input)));
+
+    let input = r#"
+0: 4 1 5
+1: 2 3 | 3 2
+2: 4 4 | 5 5
+3: 4 5 | 5 4
+4: "a"
+5: "b"
+
+ababbb
+bababa
+abbbab
+aaabbb
+aaaabbb"#;
+    assert_eq!(2, part1(get_data(input)));
+
+    let input = fs::read_to_string("input.txt").expect("Cannot find input.txt");
+    assert_eq!(182, part1(get_data(&input)));
 }
 
 #[test]
