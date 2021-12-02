@@ -32,4 +32,5 @@
 
 ## 2021
 
-- [ ] Day 01 : Rust (`cargo run --bin day_01`)
+- [x] Day 01 : Rust (`cargo run --bin day_01`)
+- [x] Day 02 : Rust
