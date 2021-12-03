@@ -58,39 +58,18 @@ fn part2(lines: Vec<Movement>) -> isize {
 
 #[test]
 fn test_part1() {
-    let movements = vec![
-        Movement {
-            direction: Direction::Forward,
-            units: 5,
-        },
-        Movement {
-            direction: Direction::Down,
-            units: 5,
-        },
-        Movement {
-            direction: Direction::Forward,
-            units: 8,
-        },
-        Movement {
-            direction: Direction::Up,
-            units: 3,
-        },
-        Movement {
-            direction: Direction::Down,
-            units: 8,
-        },
-        Movement {
-            direction: Direction::Forward,
-            units: 2,
-        },
-    ];
-    assert_eq!(150, part1(movements));
+    assert_eq!(150, part1(_movements_test()));
     assert_eq!(1507611, part1(get_data()));
 }
 
 #[test]
 fn test_part2() {
-    let movements = vec![
+    assert_eq!(900, part2(_movements_test()));
+    assert_eq!(1880593125, part2(get_data()));
+}
+
+fn _movements_test() -> Vec<Movement> {
+    vec![
         Movement {
             direction: Direction::Forward,
             units: 5,
@@ -115,9 +94,7 @@ fn test_part2() {
             direction: Direction::Forward,
             units: 2,
         },
-    ];
-    assert_eq!(900, part2(movements));
-    assert_eq!(1880593125, part2(get_data()));
+    ]
 }
 
 fn get_data() -> Vec<Movement> {

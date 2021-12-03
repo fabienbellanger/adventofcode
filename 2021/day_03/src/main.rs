@@ -1,5 +1,15 @@
 use std::fs;
 
+enum Power {
+    Gamma,
+    Epsilon,
+}
+
+enum Life {
+    Oxygen,
+    Co2,
+}
+
 fn main() {
     println!("Part 1 result: {}", part1(get_data("input.txt")));
     println!("Part 2 result: {}", part2(get_data("input.txt")));
@@ -7,53 +17,51 @@ fn main() {
 
 fn part1(lines: Vec<String>) -> usize {
     let size = lines.first().unwrap().chars().count();
-    let mut tab: Vec<(u32, u32)> = vec![(0, 0); size];
+    let mut tab_cmp: Vec<(u32, u32)> = vec![(0, 0); size];
 
     for line in lines {
         for (i, c) in line.chars().enumerate() {
             if c == '0' {
-                tab[i].0 += 1;
+                tab_cmp[i].0 += 1;
             } else {
-                tab[i].1 += 1;
+                tab_cmp[i].1 += 1;
             }
         }
     }
 
-    let gamma: String = tab
-        .iter()
-        .map(|col| match col {
-            (col_0, col_1) if col_0 >= col_1 => "0".to_owned(),
-            _ => "1".to_owned(),
-        })
-        .collect();
-
-    let epsilon: String = tab
-        .iter()
-        .map(|col| match col {
-            (col_0, col_1) if col_0 >= col_1 => "1".to_owned(),
-            _ => "0".to_owned(),
-        })
-        .collect();
-
+    let gamma: String = calculate_part1(&tab_cmp, &Power::Gamma);
     let gamma = usize::from_str_radix(&gamma, 2).unwrap();
+
+    let epsilon: String = calculate_part1(&tab_cmp, &Power::Epsilon);
     let epsilon = usize::from_str_radix(&epsilon, 2).unwrap();
 
     gamma * epsilon
 }
 
+fn calculate_part1(tab_cmp: &[(u32, u32)], power: &Power) -> String {
+    tab_cmp
+        .iter()
+        .map(|col| match (power, col) {
+            (Power::Gamma, col) if col.0 > col.1 => '0',
+            (Power::Epsilon, col) if col.0 <= col.1 => '0',
+            _ => '1',
+        })
+        .collect()
+}
+
 fn part2(lines: Vec<String>) -> usize {
     let size = lines.first().unwrap().chars().count();
 
-    let oxygen = calculate_part2(&lines, size, '1');
+    let oxygen = calculate_part2(&lines, size, &Life::Oxygen);
     let oxygen = usize::from_str_radix(&oxygen, 2).unwrap();
 
-    let co2 = calculate_part2(&lines, size, '0');
+    let co2 = calculate_part2(&lines, size, &Life::Co2);
     let co2 = usize::from_str_radix(&co2, 2).unwrap();
 
     oxygen * co2
 }
 
-fn calculate_part2(lines: &[String], size: usize, digit: char) -> String {
+fn calculate_part2(lines: &[String], size: usize, life: &Life) -> String {
     let mut result = lines.to_owned();
     for x in 0..size {
         let mut col = (0, 0);
@@ -65,9 +73,9 @@ fn calculate_part2(lines: &[String], size: usize, digit: char) -> String {
             }
         }
 
-        let start = match (digit, col) {
-            ('1', col) if col.0 > col.1 => '0',
-            ('0', col) if col.0 <= col.1 => '0',
+        let start = match (life, col) {
+            (Life::Oxygen, col) if col.0 > col.1 => '0',
+            (Life::Co2, col) if col.0 <= col.1 => '0',
             _ => '1',
         };
 
@@ -76,6 +84,7 @@ fn calculate_part2(lines: &[String], size: usize, digit: char) -> String {
             .filter(|line| line.chars().nth(x).unwrap() == start)
             .collect();
 
+        // Good line found
         if result.len() == 1 {
             break;
         }
