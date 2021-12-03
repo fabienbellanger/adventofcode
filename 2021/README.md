@@ -1,0 +1,7 @@
+# Advent Of Code 2021
+
+My [adventofcode.com](https://adventofcode.com/2021) solutions
+
+- [x] Day 01 : Rust (`cargo run --bin day_01`)
+- [x] Day 02 : Rust
+- [ ] Day 03 : Rust
