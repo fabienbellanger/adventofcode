@@ -2,7 +2,7 @@ use std::fs;
 
 const BINGO_SIZE: usize = 5;
 
-type Board = [[u8; BINGO_SIZE]; BINGO_SIZE];
+type Board = Vec<Vec<(u8, bool)>>;
 
 #[derive(Debug)]
 struct Game {
@@ -20,11 +20,12 @@ impl Default for Game {
 }
 
 fn main() {
-    // println!("Part 1 result: {}", part1(get_data("input.txt")));
+    println!("Part 1 result: {}", part1(get_data("input.txt")));
     // println!("Part 2 result: {}", part2(get_data("input.txt")));
 }
 
 fn part1(game: Game) -> usize {
+    dbg!(&game);
     0
 }
 
@@ -45,18 +46,35 @@ fn test_part2() {
 }
 
 fn get_data(file: &str) -> Game {
-    let mut game = Game::default();
-
-    let data: Vec<String> = fs::read_to_string(file)
+    let data = fs::read_to_string(file)
         .unwrap_or_else(|_| panic!("Cannot read the file {}", file))
         .trim()
         .lines()
         .map(|line| line.to_string())
-        .collect();
-    dbg!(&data);
+        .collect::<Vec<_>>();
+    let (numbers, boards) = data.split_first().expect("error when parsing input data");
 
     // Numbers
     // -------
+    let numbers: Vec<u8> = numbers.split(',').map(|n| n.parse().unwrap()).collect();
 
-    game
+    // Boards
+    // ------
+    let boards: Vec<_> = boards
+        .chunks(BINGO_SIZE + 1)
+        .map(|board| {
+            let board: Vec<_> = board
+                .iter()
+                .skip(1)
+                .map(|s| {
+                    s.split_whitespace()
+                        .map(|d| (d.parse().unwrap(), false))
+                        .collect::<Vec<(u8, bool)>>()
+                })
+                .collect();
+            board
+        })
+        .collect();
+
+    Game { numbers, boards }
 }
