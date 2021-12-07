@@ -11,11 +11,12 @@ fn main() {
     println!("Part 2 result: {}", part2(get_data("input.txt")));
 }
 
-fn part1(crab: Crabs) -> usize {
-    (crab.min..=crab.max)
+fn part1(crabs: Crabs) -> usize {
+    (crabs.min..=crabs.max)
         .into_iter()
         .map(|i| {
-            crab.positions
+            crabs
+                .positions
                 .iter()
                 .map(|n| (*n - i).abs() as usize)
                 .sum::<usize>()
@@ -24,11 +25,12 @@ fn part1(crab: Crabs) -> usize {
         .unwrap_or_default()
 }
 
-fn part2(crab: Crabs) -> usize {
-    (crab.min..=crab.max)
+fn part2(crabs: Crabs) -> usize {
+    (crabs.min..=crabs.max)
         .into_iter()
         .map(|i| {
-            crab.positions
+            crabs
+                .positions
                 .iter()
                 .map(|n| {
                     let delta = (*n - i).abs() as usize;
