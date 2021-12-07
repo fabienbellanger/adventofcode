@@ -28,18 +28,33 @@ fn part1(initial_state: Vec<u8>, days: u16) -> usize {
 }
 
 fn part2(initial_state: Vec<u8>, days: u16) -> usize {
-    let mut hash_state: HashMap<u8, u32> = HashMap::with_capacity(9);
+    let mut hash_state: HashMap<u8, usize> = HashMap::with_capacity(9);
 
     // Initialize hashmap
     for n in initial_state.into_iter() {
         let value = hash_state.entry(n).or_insert(0);
         *value += 1;
     }
-    dbg!(&hash_state);
 
-    for _ in 0..days {}
+    for _ in 0..days {
+        let mut new_state = HashMap::with_capacity(9);
 
-    0
+        for (timer, count) in &hash_state {
+            if *timer == 0 {
+                let t = new_state.entry(8).or_insert(0);
+                *t += *count;
+                let t = new_state.entry(6).or_insert(0);
+                *t += *count;
+            } else {
+                let t = new_state.entry(*timer - 1).or_insert(0);
+                *t += *count;
+            }
+        }
+
+        hash_state = new_state;
+    }
+
+    hash_state.values().sum()
 }
 
 #[test]
@@ -51,7 +66,7 @@ fn test_part1() {
 #[test]
 fn test_part2() {
     assert_eq!(26984457539, part2(get_data("test.txt"), 256));
-    // assert_eq!(17013, part2(get_data("input.txt"), 256));
+    assert_eq!(1653250886439, part2(get_data("input.txt"), 256));
 }
 
 fn get_data(file: &str) -> Vec<u8> {
