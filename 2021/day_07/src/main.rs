@@ -1,9 +1,9 @@
 use std::fs;
 
-struct Crab {
-    positions: Vec<u16>,
-    min: u16,
-    max: u16,
+struct Crabs {
+    positions: Vec<i32>,
+    min: i32,
+    max: i32,
 }
 
 fn main() {
@@ -11,27 +11,30 @@ fn main() {
     println!("Part 2 result: {}", part2(get_data("input.txt")));
 }
 
-fn part1(crab: Crab) -> usize {
+fn part1(crab: Crabs) -> usize {
     (crab.min..=crab.max)
         .into_iter()
         .map(|i| {
             crab.positions
                 .iter()
-                .map(|n| (*n as i16 - i as i16).abs() as usize)
+                .map(|n| (*n - i).abs() as usize)
                 .sum::<usize>()
         })
         .min()
         .unwrap_or_default()
 }
 
-fn part2(crab: Crab) -> usize {
+fn part2(crab: Crabs) -> usize {
     (crab.min..=crab.max)
         .into_iter()
         .map(|i| {
             crab.positions
                 .iter()
-                .map(|n| (*n as i16 - i as i16).abs() as usize)
-                .map(|n| (1..=n).into_iter().sum::<usize>())
+                .map(|n| {
+                    let delta = (*n - i).abs() as usize;
+
+                    delta * (delta + 1) / 2 // Thanks Gauss :)
+                })
                 .sum::<usize>()
         })
         .min()
@@ -50,10 +53,10 @@ fn test_part2() {
     assert_eq!(97164301, part2(get_data("input.txt")));
 }
 
-fn get_data(file: &str) -> Crab {
-    let mut crab = Crab {
+fn get_data(file: &str) -> Crabs {
+    let mut crab = Crabs {
         positions: vec![],
-        min: u16::MAX,
+        min: i32::MAX,
         max: 0,
     };
 
