@@ -8,4 +8,4 @@ My [adventofcode.com](https://adventofcode.com/2021) solutions
 - [x] Day 04 : Rust
 - [x] Day 05 : Rust
 - [x] Day 06 : Rust
-- [ ] Day 07 : Rust
+- [x] Day 07 : Rust
