@@ -1,16 +1,16 @@
 use std::fs;
 
 /*
-0: abcefg
-1: cf
-2: acdeg
-3: acdfg
-4: bcdf
-5: abdfg
-6: abdefg
-7: acf
-8: abcdefg
-9: abcdfg
+0: abcefg (6)
+1: cf (2)
+2: acdeg (5)
+3: acdfg (5)
+4: bcdf (4)
+5: abdfg (5)
+6: abdefg (6)
+7: acf (3)
+8: abcdefg (7)
+9: abcdfg (6)
 */
 
 fn main() {
