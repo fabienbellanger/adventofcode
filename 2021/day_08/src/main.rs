@@ -1,5 +1,18 @@
 use std::fs;
 
+/*
+0: abcefg
+1: cf
+2: acdeg
+3: acdfg
+4: bcdf
+5: abdfg
+6: abdefg
+7: acf
+8: abcdefg
+9: abcdfg
+*/
+
 fn main() {
     // println!("Part 1 result: {}", part1(get_data("input.txt")));
     // println!("Part 2 result: {}", part2(get_data("input.txt")));
