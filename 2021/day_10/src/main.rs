@@ -44,15 +44,9 @@ fn part1(data: Vec<Vec<char>>) -> usize {
 }
 
 fn part2(data: Vec<Vec<char>>) -> usize {
-    let mut points: HashMap<char, usize> = HashMap::with_capacity(4);
-    points.insert(')', 1);
-    points.insert(']', 2);
-    points.insert('}', 3);
-    points.insert('>', 4);
-
     let mut missings: Vec<Vec<char>> = Vec::new();
 
-    'l: for line in data {
+    'line: for line in data {
         let mut stack: Vec<char> = Vec::new();
 
         for c in line {
@@ -63,12 +57,12 @@ fn part2(data: Vec<Vec<char>>) -> usize {
                         match (last, c) {
                             ('(', ')') | ('[', ']') | ('{', '}') | ('<', '>') => (),
                             _ => {
-                                continue 'l;
+                                continue 'line;
                             }
                         }
                     }
                 }
-                _ => (),
+                _ => panic!("invalid character"),
             }
         }
 
