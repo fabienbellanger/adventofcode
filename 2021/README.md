@@ -11,3 +11,4 @@ My [adventofcode.com](https://adventofcode.com/2021) solutions
 - [x] Day 07 : Rust
 - [x] Day 08 : Rust
 - [x] Day 09 : Rust
+- [ ] Day 10 : Rust

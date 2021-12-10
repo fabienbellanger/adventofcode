@@ -29,7 +29,7 @@ fn get_data(file: &str) {
     fs::read_to_string(file)
         .unwrap_or_else(|_| panic!("Cannot read the file {}", file))
         .trim()
-        .split(',')
+        .lines()
         .map(|n| n.parse().unwrap())
         .collect();
 }
