@@ -1,52 +1,118 @@
 use std::{collections::HashMap, fs};
 
-/*
-    ): 3 points.
-    ]: 57 points.
-    }: 1197 points.
-    >: 25137 points.
-*/
-
 fn main() {
     println!("Part 1 result: {}", part1(get_data("input.txt")));
     println!("Part 2 result: {}", part2(get_data("input.txt")));
 }
 
-fn get_symbols() -> HashMap<char, (char, usize)> {
-    let mut symbols: HashMap<char, (char, usize)> = HashMap::with_capacity(4);
-    symbols.insert(')', ('(', 3));
-    symbols.insert(']', ('[', 57));
-    symbols.insert('}', ('{', 1_197));
-    symbols.insert('>', ('<', 25_137));
-
-    symbols
-}
-
 fn part1(data: Vec<Vec<char>>) -> usize {
-    dbg!(&data);
+    let mut points: HashMap<char, usize> = HashMap::with_capacity(4);
+    points.insert(')', 3);
+    points.insert(']', 57);
+    points.insert('}', 1_197);
+    points.insert('>', 25_137);
 
-    let symbols = get_symbols();
-    println!("{:?}", &symbols);
+    let mut errors: HashMap<char, usize> = HashMap::with_capacity(data.len());
 
-    // 1. Collect errors in a HashMap<char, usize>
-    // 2. Sum(nb_char * char_points)
-    0
+    for line in data {
+        let mut stack: Vec<char> = Vec::new();
+
+        for c in line {
+            match c {
+                '(' | '[' | '{' | '<' => stack.push(c),
+                ')' | ']' | '}' | '>' => {
+                    if let Some(last) = stack.pop() {
+                        match (last, c) {
+                            ('(', ')') | ('[', ']') | ('{', '}') | ('<', '>') => (),
+                            _ => {
+                                let err = errors.entry(c).or_insert(0);
+                                *err += 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+                _ => (),
+            }
+        }
+    }
+
+    errors
+        .iter()
+        .map(|(c, n)| points.get(c).unwrap_or(&0) * *n)
+        .sum()
 }
 
-fn part2(_data: Vec<Vec<char>>) -> usize {
-    0
+fn part2(data: Vec<Vec<char>>) -> usize {
+    let mut points: HashMap<char, usize> = HashMap::with_capacity(4);
+    points.insert(')', 1);
+    points.insert(']', 2);
+    points.insert('}', 3);
+    points.insert('>', 4);
+
+    let mut missings: Vec<Vec<char>> = Vec::new();
+
+    'l: for line in data {
+        let mut stack: Vec<char> = Vec::new();
+
+        for c in line {
+            match c {
+                '(' | '[' | '{' | '<' => stack.push(c),
+                ')' | ']' | '}' | '>' => {
+                    if let Some(last) = stack.pop() {
+                        match (last, c) {
+                            ('(', ')') | ('[', ']') | ('{', '}') | ('<', '>') => (),
+                            _ => {
+                                continue 'l;
+                            }
+                        }
+                    }
+                }
+                _ => (),
+            }
+        }
+
+        let missing = stack
+            .into_iter()
+            .rev()
+            .map(|c| match c {
+                '(' => ')',
+                '[' => ']',
+                '{' => '}',
+                '<' => '>',
+                _ => panic!("invalid character"),
+            })
+            .collect();
+        missings.push(missing);
+    }
+
+    let mut scores: Vec<usize> = missings
+        .into_iter()
+        .map(|list| {
+            list.into_iter().fold(0, |acc, c| match c {
+                ')' => 5 * acc + 1,
+                ']' => 5 * acc + 2,
+                '}' => 5 * acc + 3,
+                '>' => 5 * acc + 4,
+                _ => panic!("invalid character"),
+            })
+        })
+        .collect();
+    scores.sort_unstable();
+
+    *scores.get(scores.len() / 2).unwrap()
 }
 
 #[test]
 fn test_part1() {
     assert_eq!(26397, part1(get_data("test.txt")));
-    // assert_eq!(344297, part1(get_data("input.txt")));
+    assert_eq!(389589, part1(get_data("input.txt")));
 }
 
 #[test]
 fn test_part2() {
-    // assert_eq!(168, part2(get_data("test.txt")));
-    // assert_eq!(97164301, part2(get_data("input.txt")));
+    assert_eq!(288957, part2(get_data("test.txt")));
+    assert_eq!(1190420163, part2(get_data("input.txt")));
 }
 
 fn get_data(file: &str) -> Vec<Vec<char>> {
