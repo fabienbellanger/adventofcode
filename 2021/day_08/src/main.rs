@@ -25,47 +25,29 @@ fn part1(signals: Vec<Signal>) -> usize {
 }
 
 fn part2(signals: Vec<Signal>) -> usize {
-    let digits: [Vec<u8>; 10] = [
-        vec![0, 1, 2, 4, 5, 6],    // 0
-        vec![2, 6],                // 1
-        vec![0, 2, 3, 4, 6],       // 2
-        vec![0, 2, 3, 5, 6],       // 3
-        vec![1, 2, 3, 5],          // 4
-        vec![0, 1, 3, 5, 6],       // 5
-        vec![0, 1, 3, 4, 5, 6],    // 6
-        vec![0, 2, 5],             // 7
-        vec![0, 1, 2, 3, 4, 5, 6], // 8
-        vec![0, 1, 2, 3, 5, 6],    // 9
-    ];
-
+    let mut sum = 0;
     for line in signals {
         let result = find_segments(&line.signal_patterns);
-        dbg!(&result);
-        break;
+
+        sum += get_output_value(&line.ouput, result);
     }
 
-    0
+    sum
 }
 
-fn get_signal_by_length(line: &Vec<String>) -> HashMap<usize, Vec<String>> {
+fn get_signal_by_length(line: &[String]) -> HashMap<usize, Vec<String>> {
     let mut result: HashMap<usize, Vec<String>> = HashMap::with_capacity(6);
 
     line.iter().for_each(|l| {
         let n = l.chars().count();
-        let item = result.entry(n).or_insert(vec![]);
+        let item = result.entry(n).or_insert_with(Vec::new);
         item.push(l.clone());
     });
 
     result
 }
 
-fn find_segments(line: &Vec<String>) -> [char; 7] {
-    dbg!(&line);
-    // 1. Find "0", with 1 et 7
-    // 2. Find "6" with 2, 3, 5 (3x ("0", "3", "6"))
-    // 3. Find "4" with 0
-    // 4. Find "2" and "5" with 6
-
+fn find_segments(line: &[String]) -> [char; 7] {
     let signals_by_length = get_signal_by_length(line);
     let mut result: [char; 7] = [' '; 7];
 
@@ -109,19 +91,14 @@ fn find_segments(line: &Vec<String>) -> [char; 7] {
             break;
         }
     }
-    result[6] = step_2
-        .into_iter()
-        .filter(|c| *c != result[3])
-        .next()
-        .unwrap();
+    result[6] = step_2.into_iter().find(|c| *c != result[3]).unwrap();
     result[1] = signals_by_length
         .get(&4)
         .unwrap()
         .first()
         .unwrap()
         .chars()
-        .filter(|c| {
-            dbg!(c, &result[3], signals_by_length.get(&2).unwrap());
+        .find(|c| {
             *c != result[3]
                 && !signals_by_length
                     .get(&2)
@@ -130,16 +107,84 @@ fn find_segments(line: &Vec<String>) -> [char; 7] {
                     .unwrap()
                     .contains(*c)
         })
-        .next()
         .unwrap();
 
-    // Step 3 ('4' => tous - ceux dans result et dans 1)
-    // -------------------------------------------------
+    // Step 3 ('4' => all in 6 digitis which are the same and not in result)
+    // ---------------------------------------------------------------------
+    for s in signals_by_length.get(&6).unwrap() {
+        for c in s.chars() {
+            if !result.contains(&c)
+                && !signals_by_length
+                    .get(&2)
+                    .unwrap()
+                    .first()
+                    .unwrap()
+                    .contains(c)
+            {
+                result[4] = c;
+            }
+        }
+    }
 
-    /*
-    d e a f g b c
-    */
+    // Step 4
+    // ------
+    let mut step_4: HashMap<char, u8> = HashMap::new();
+    for s in signals_by_length.get(&2).unwrap() {
+        for c in s.chars() {
+            if !result.contains(&c) {
+                for s1 in signals_by_length.get(&5).unwrap() {
+                    for c1 in s1.chars() {
+                        if c == c1 {
+                            let e = step_4.entry(c1).or_insert(0);
+                            *e += 1;
+                        }
+                    }
+                }
+                for s1 in signals_by_length.get(&6).unwrap() {
+                    for c1 in s1.chars() {
+                        if c == c1 {
+                            let e = step_4.entry(c1).or_insert(0);
+                            *e += 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    result[2] = step_4.iter().min_by_key(|a| a.1).map(|e| *e.0).unwrap();
+    result[5] = step_4.iter().max_by_key(|a| a.1).map(|e| *e.0).unwrap();
+
     result
+}
+
+fn get_output_value(outputs: &[String], result: [char; 7]) -> usize {
+    let numbers: [Vec<usize>; 10] = [
+        vec![0, 1, 2, 4, 5, 6],    // 0
+        vec![2, 5],                // 1
+        vec![0, 2, 3, 4, 6],       // 2
+        vec![0, 2, 3, 5, 6],       // 3
+        vec![1, 2, 3, 5],          // 4
+        vec![0, 1, 3, 5, 6],       // 5
+        vec![0, 1, 3, 4, 5, 6],    // 6
+        vec![0, 2, 5],             // 7
+        vec![0, 1, 2, 3, 4, 5, 6], // 8
+        vec![0, 1, 2, 3, 5, 6],    // 9
+    ];
+
+    let mut r = String::new();
+    for output in outputs {
+        let mut digits = Vec::with_capacity(7);
+        for c in output.chars() {
+            let index = result.iter().position(|c1| *c1 == c).unwrap();
+            digits.push(index);
+        }
+        digits.sort_unstable();
+
+        let num = numbers.iter().position(|n| *n == digits).unwrap();
+        r.push(std::char::from_digit(num as u32, 10).unwrap());
+    }
+
+    r.parse().unwrap()
 }
 
 #[test]
@@ -151,7 +196,7 @@ fn test_part1() {
 #[test]
 fn test_part2() {
     assert_eq!(61229, part2(get_data("test.txt")));
-    // assert_eq!(97164301, part2(get_data("input.txt")));
+    assert_eq!(933305, part2(get_data("input.txt")));
 }
 
 fn get_data(file: &str) -> Vec<Signal> {
