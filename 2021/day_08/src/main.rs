@@ -59,14 +59,7 @@ fn find_segments(line: &[String]) -> [char; 7] {
         .first()
         .unwrap()
         .chars()
-        .filter(|c| {
-            !signals_by_length
-                .get(&2)
-                .unwrap()
-                .first()
-                .unwrap()
-                .contains(*c)
-        })
+        .filter(|c| !signals_by_length.get(&2).unwrap().first().unwrap().contains(*c))
         .collect();
     result[0] = *find_1.first().unwrap();
 
@@ -98,29 +91,14 @@ fn find_segments(line: &[String]) -> [char; 7] {
         .first()
         .unwrap()
         .chars()
-        .find(|c| {
-            *c != result[3]
-                && !signals_by_length
-                    .get(&2)
-                    .unwrap()
-                    .first()
-                    .unwrap()
-                    .contains(*c)
-        })
+        .find(|c| *c != result[3] && !signals_by_length.get(&2).unwrap().first().unwrap().contains(*c))
         .unwrap();
 
     // Step 3 ('4' => all in 6 digitis which are the same and not in result)
     // ---------------------------------------------------------------------
     for s in signals_by_length.get(&6).unwrap() {
         for c in s.chars() {
-            if !result.contains(&c)
-                && !signals_by_length
-                    .get(&2)
-                    .unwrap()
-                    .first()
-                    .unwrap()
-                    .contains(c)
-            {
+            if !result.contains(&c) && !signals_by_length.get(&2).unwrap().first().unwrap().contains(c) {
                 result[4] = c;
             }
         }
@@ -209,24 +187,11 @@ fn get_data(file: &str) -> Vec<Signal> {
         .for_each(|line| {
             let parts = line.split_once(" | ").unwrap();
 
-            let signal_patterns: Vec<String> = parts
-                .0
-                .split_whitespace()
-                .into_iter()
-                .map(|s| s.to_string())
-                .collect();
+            let signal_patterns: Vec<String> = parts.0.split_whitespace().into_iter().map(|s| s.to_string()).collect();
 
-            let ouput: Vec<String> = parts
-                .1
-                .split_whitespace()
-                .into_iter()
-                .map(|s| s.to_string())
-                .collect();
+            let ouput: Vec<String> = parts.1.split_whitespace().into_iter().map(|s| s.to_string()).collect();
 
-            signals.push(Signal {
-                signal_patterns,
-                ouput,
-            });
+            signals.push(Signal { signal_patterns, ouput });
         });
 
     signals

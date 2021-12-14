@@ -14,13 +14,7 @@ fn main() {
 fn part1(crabs: Crabs) -> usize {
     (crabs.min..=crabs.max)
         .into_iter()
-        .map(|i| {
-            crabs
-                .positions
-                .iter()
-                .map(|n| (*n - i).abs() as usize)
-                .sum::<usize>()
-        })
+        .map(|i| crabs.positions.iter().map(|n| (*n - i).abs() as usize).sum::<usize>())
         .min()
         .unwrap_or_default()
 }

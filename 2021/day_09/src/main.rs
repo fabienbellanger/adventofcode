@@ -30,10 +30,7 @@ fn find_low_points(data: &[Vec<u8>]) -> HashMap<(usize, usize), u8> {
 fn part1(data: Vec<Vec<u8>>) -> usize {
     let low_points = find_low_points(&data);
 
-    low_points
-        .into_iter()
-        .map(|(_index, value)| value as usize + 1)
-        .sum()
+    low_points.into_iter().map(|(_index, value)| value as usize + 1).sum()
 }
 
 fn part2(data: Vec<Vec<u8>>) -> usize {
@@ -112,10 +109,6 @@ fn get_data(file: &str) -> Vec<Vec<u8>> {
         .unwrap_or_else(|_| panic!("Cannot read the file {}", file))
         .trim()
         .lines()
-        .map(|n| {
-            n.chars()
-                .map(|d| d.to_digit(10).unwrap() as u8)
-                .collect::<Vec<u8>>()
-        })
+        .map(|n| n.chars().map(|d| d.to_digit(10).unwrap() as u8).collect::<Vec<u8>>())
         .collect::<Vec<Vec<u8>>>()
 }

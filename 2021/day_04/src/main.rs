@@ -121,27 +121,9 @@ fn test_winner_board_row() {
         board: vec![
             vec![(1, false), (4, false), (6, true), (9, false), (9, false)],
             vec![(12, true), (14, true), (16, false), (19, true), (19, true)],
-            vec![
-                (21, false),
-                (24, false),
-                (26, true),
-                (29, false),
-                (29, false),
-            ],
-            vec![
-                (31, false),
-                (34, false),
-                (36, true),
-                (39, false),
-                (39, false),
-            ],
-            vec![
-                (41, false),
-                (44, false),
-                (46, true),
-                (49, false),
-                (49, false),
-            ],
+            vec![(21, false), (24, false), (26, true), (29, false), (29, false)],
+            vec![(31, false), (34, false), (36, true), (39, false), (39, false)],
+            vec![(41, false), (44, false), (46, true), (49, false), (49, false)],
         ],
     };
     assert_eq!(false, board.winned());

@@ -24,21 +24,13 @@ fn part1(vents: Vents) -> usize {
 
     for (c1, c2) in vents.lines {
         if c1.x == c2.x {
-            let r = if c1.y < c2.y {
-                c1.y..=c2.y
-            } else {
-                c2.y..=c1.y
-            };
+            let r = if c1.y < c2.y { c1.y..=c2.y } else { c2.y..=c1.y };
 
             for y in r {
                 grid[y as usize][c1.x as usize] += 1;
             }
         } else if c1.y == c2.y {
-            let r = if c1.x < c2.x {
-                c1.x..=c2.x
-            } else {
-                c2.x..=c1.x
-            };
+            let r = if c1.x < c2.x { c1.x..=c2.x } else { c2.x..=c1.x };
 
             for x in r {
                 grid[c1.y as usize][x as usize] += 1;

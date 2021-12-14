@@ -21,19 +21,13 @@ fn part2(lines: Vec<isize>) -> usize {
 
 #[test]
 fn test_part1() {
-    assert_eq!(
-        7,
-        part1(vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263])
-    );
+    assert_eq!(7, part1(vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263]));
     assert_eq!(1139, part1(get_data()));
 }
 
 #[test]
 fn test_part2() {
-    assert_eq!(
-        5,
-        part2(vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263])
-    );
+    assert_eq!(5, part2(vec![199, 200, 208, 210, 200, 207, 240, 269, 260, 263]));
     assert_eq!(1103, part2(get_data()));
 }
 

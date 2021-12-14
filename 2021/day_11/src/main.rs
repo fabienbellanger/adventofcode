@@ -10,16 +10,7 @@ fn main() {
 
 fn flash(data: &mut HashMap<(isize, isize), isize>, row: isize, col: isize) -> usize {
     let mut flashes = 1;
-    let directions: Vec<(isize, isize)> = vec![
-        (-1, 0),
-        (1, 0),
-        (0, -1),
-        (0, 1),
-        (-1, -1),
-        (1, 1),
-        (1, -1),
-        (-1, 1),
-    ];
+    let directions: Vec<(isize, isize)> = vec![(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, 1), (1, -1), (-1, 1)];
 
     for dir in directions {
         if let Some(v) = data.get_mut(&(row + dir.0, col + dir.1)) {
@@ -117,12 +108,7 @@ fn get_data(file: &str) -> HashMap<(isize, isize), isize> {
         .map(|(row, line)| {
             line.chars()
                 .enumerate()
-                .map(|(col, v)| {
-                    (
-                        (row as isize, col as isize),
-                        v.to_digit(10).unwrap() as isize,
-                    )
-                })
+                .map(|(col, v)| ((row as isize, col as isize), v.to_digit(10).unwrap() as isize))
                 .collect::<HashMap<(isize, isize), isize>>()
         })
         .flatten()

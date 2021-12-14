@@ -37,10 +37,7 @@ fn part1(data: Vec<Vec<char>>) -> usize {
         }
     }
 
-    errors
-        .iter()
-        .map(|(c, n)| points.get(c).unwrap_or(&0) * *n)
-        .sum()
+    errors.iter().map(|(c, n)| points.get(c).unwrap_or(&0) * *n).sum()
 }
 
 fn part2(data: Vec<Vec<char>>) -> usize {
