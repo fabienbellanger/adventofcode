@@ -2,7 +2,7 @@ use std::{collections::HashMap, fs};
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data("input.txt"), 10));
-    println!("Part 2 result: {}", part2(get_data("input.txt")));
+    println!("Part 2 result: {}", part2(get_data("input.txt"), 40));
 }
 
 fn part1(data: (Vec<char>, HashMap<(char, char), char>), steps: usize) -> usize {
@@ -44,7 +44,7 @@ fn part1(data: (Vec<char>, HashMap<(char, char), char>), steps: usize) -> usize 
     max - min
 }
 
-fn part2(data: (Vec<char>, HashMap<(char, char), char>)) -> usize {
+fn part2(data: (Vec<char>, HashMap<(char, char), char>), steps: usize) -> usize {
     0
 }
 
@@ -56,7 +56,7 @@ fn test_part1() {
 
 #[test]
 fn test_part2() {
-    assert_eq!(2188189693529, part1(get_data("test.txt"), 20));
+    assert_eq!(2188189693529, part2(get_data("test.txt"), 40));
     // assert_eq!(97164301, part2(get_data("input.txt")));
 }
 
