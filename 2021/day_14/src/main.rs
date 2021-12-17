@@ -6,9 +6,42 @@ fn main() {
 }
 
 fn part1(data: (Vec<char>, HashMap<(char, char), char>), steps: usize) -> usize {
-    dbg!((&data, steps));
+    let mut polymer = data.0;
+    let pairs = data.1;
 
-    0
+    for _ in 0..steps {
+        let n = polymer.len();
+        let mut i = 0;
+        loop {
+            if i == 2 * n - 2 {
+                break;
+            }
+
+            if let Some(c) = pairs.get(&(polymer[i], polymer[i + 1])) {
+                polymer.insert(i + 1, *c);
+            }
+
+            i += 2;
+        }
+    }
+
+    let mut counts: HashMap<char, usize> = HashMap::new();
+    for c in polymer {
+        let e = counts.entry(c).or_insert(0);
+        *e += 1;
+    }
+
+    let (mut min, mut max) = (usize::MAX, 0);
+    for (_, n) in counts {
+        if n > max {
+            max = n
+        };
+        if n < min {
+            min = n
+        };
+    }
+
+    max - min
 }
 
 fn part2(data: (Vec<char>, HashMap<(char, char), char>)) -> usize {
@@ -17,13 +50,13 @@ fn part2(data: (Vec<char>, HashMap<(char, char), char>)) -> usize {
 
 #[test]
 fn test_part1() {
-    assert_eq!(1588, part1(get_data("test.txt"), 1));
-    // assert_eq!(344297, part1(get_data("input.txt")));
+    assert_eq!(1588, part1(get_data("test.txt"), 10));
+    assert_eq!(2937, part1(get_data("input.txt"), 10));
 }
 
 #[test]
 fn test_part2() {
-    // assert_eq!(168, part2(get_data("test.txt")));
+    assert_eq!(2188189693529, part1(get_data("test.txt"), 20));
     // assert_eq!(97164301, part2(get_data("input.txt")));
 }
 
