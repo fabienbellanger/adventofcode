@@ -56,7 +56,7 @@ fn test_part1() {
 
 #[test]
 fn test_part2() {
-    assert_eq!(2188189693529, part2(get_data("test.txt"), 40));
+    assert_eq!(2188189693529, part1(get_data("test.txt"), 10));
     // assert_eq!(97164301, part2(get_data("input.txt")));
 }
 
