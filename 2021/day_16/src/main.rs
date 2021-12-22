@@ -14,16 +14,16 @@ enum Operator {
 
 #[derive(Debug)]
 struct Packet {
-    Version: usize,
-    TypeId: TypeId,
-    Operator: Option<Operator>,
-    SubPackets: Vec<char>,
+    version: usize,
+    type_id: TypeId,
+    operator: Option<Operator>,
+    sub_packets: Vec<char>,
 }
 
 impl Packet {
     fn from_binary(data: &[char]) -> Self {
-        let version = chars_to_num(&data.iter().take(3).map(|c| *c).collect::<Vec<char>>());
-        let type_id = chars_to_num(&data.iter().skip(3).take(3).map(|c| *c).collect::<Vec<char>>());
+        let version = chars_to_num(&data.iter().take(3).copied().collect::<Vec<char>>());
+        let type_id = chars_to_num(&data.iter().skip(3).take(3).copied().collect::<Vec<char>>());
         let type_id = match type_id {
             4 => TypeId::Literal,
             _ => TypeId::Operator,
@@ -47,10 +47,10 @@ impl Packet {
         };
 
         Self {
-            Version: version,
-            TypeId: type_id,
-            Operator: operator,
-            SubPackets: sub_packets.to_vec(),
+            version,
+            type_id,
+            operator,
+            sub_packets: sub_packets.to_vec(),
         }
     }
 }
@@ -72,7 +72,7 @@ fn part1(input: Vec<char>) -> usize {
     0
 }
 
-fn part2() -> usize {
+fn _part2() -> usize {
     0
 }
 
