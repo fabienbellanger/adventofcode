@@ -12,11 +12,7 @@ fn part1(data: (Vec<char>, HashMap<(char, char), char>), steps: usize) -> usize 
     for _ in 0..steps {
         let n = polymer.len();
         let mut i = 0;
-        loop {
-            if i == 2 * n - 2 {
-                break;
-            }
-
+        while !(i >= 2 * n - 2) {
             if let Some(c) = pairs.get(&(polymer[i], polymer[i + 1])) {
                 polymer.insert(i + 1, *c);
             }
