@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, vec};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum TypeId {
     Literal,
     Operator,
@@ -17,7 +17,8 @@ struct Packet {
     version: usize,
     type_id: TypeId,
     operator: Option<Operator>,
-    sub_packets: Vec<char>,
+    sub_packets: Vec<Packet>,
+    numbers: Vec<usize>,
 }
 
 impl Packet {
@@ -28,18 +29,28 @@ impl Packet {
             4 => TypeId::Literal,
             _ => TypeId::Operator,
         };
-        let (operator, sub_packets) = match type_id {
-            TypeId::Literal => (None, &data[6..]),
+
+        let (operator, sub_packets, numbers) = match type_id {
+            TypeId::Literal => {
+                // TODO: Calculate numbers
+                (None, vec![], vec![])
+            },
             TypeId::Operator => {
                 let op = data[6];
                 match op {
                     '0' => {
-                        // 15 next bits = length
-                        (Some(Operator::Length(chars_to_num(&data[7..22]))), &data[22..])
+                        // 15 next bits = length => data[22..].to_vec()
+                        let length = chars_to_num(&data[7..22]);
+                        let mut sub_packets = Vec::new();
+
+                        (Some(Operator::Length(length)), sub_packets, vec![])
                     }
                     '1' => {
-                        // 11 next bits = number
-                        (Some(Operator::Number(chars_to_num(&data[7..18]))), &data[18..])
+                        // 11 next bits = number => data[18..].to_vec()
+                        let number = chars_to_num(&data[7..18]);
+                        let mut sub_packets = Vec::with_capacity(number);
+
+                        (Some(Operator::Number(number)), sub_packets, vec![])
                     }
                     _ => panic!("Invalid char"),
                 }
@@ -50,7 +61,8 @@ impl Packet {
             version,
             type_id,
             operator,
-            sub_packets: sub_packets.to_vec(),
+            sub_packets,
+            numbers,
         }
     }
 }
@@ -69,7 +81,19 @@ fn part1(input: Vec<char>) -> usize {
     let packet = Packet::from_binary(&input);
     dbg!(&packet);
 
-    0
+    let mut sum = 0;
+    let mut list = Vec::new();
+    list.push(packet);
+    
+    while let Some(packet) = list.pop() {
+        sum += packet.version;
+
+        if packet.type_id == TypeId::Operator {
+            // TODO: Compute sub packets
+        }
+    }
+
+    sum
 }
 
 fn _part2() -> usize {
@@ -85,7 +109,6 @@ fn test_part1() {
     assert_eq!(12, part1(get_data("620080001611562C8802118E34")));
     assert_eq!(23, part1(get_data("C0015000016115A2E0802F182340")));
     assert_eq!(31, part1(get_data("A0016C880162017C3686B18A3D4780")));
-    // assert_eq!(344297, part1(get_data("input.txt")));
 }
 
 #[test]
