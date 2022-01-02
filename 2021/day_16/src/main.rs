@@ -25,41 +25,66 @@ struct Packet {
 }
 
 impl Packet {
-    fn from_binary(data: &[char]) -> (Self, usize) {
-        let version = chars_to_num(&data.iter().take(3).copied().collect::<Vec<char>>());
-        let type_id = chars_to_num(&data.iter().skip(3).take(3).copied().collect::<Vec<char>>());
+    fn parse(data: &[char], next: &mut usize) -> Self {
+        let version = chars_to_num(&data[*next..*next + 3]);
+        let type_id = chars_to_num(&data[*next + 3..*next + 6]);
         let type_id = match type_id {
             4 => TypeId::Literal,
             _ => TypeId::Operator,
         };
+        *next += 6;
 
-        // dbg!(data);
-
-        let mut next = 0;
+        let mut packets = Vec::new();
 
         let (operator, sub_packets, number) = match type_id {
             TypeId::Literal => {
-                let (number, new_next) = Self::get_number(&data[6..]);
-                next = new_next;
+                let mut header = data[*next];
+                let mut result = Vec::new();
 
-                (None, vec![], Some(number))
+                *next += 1;
+                while header != '0' {
+                    for _ in 0..4 {
+                        result.push(data[*next]);
+                        *next += 1;
+                    }
+                    header = data[*next];
+                    *next += 1;
+                }
+
+                for _ in 0..4 {
+                    result.push(data[*next]);
+                    *next += 1;
+                }
+
+                (None, vec![], Some(chars_to_num(&result)))
             },
             TypeId::Operator => {
-                let op = data[6];
+                let op = data[*next];
+                *next += 1;
+
                 match op {
                     '0' => {
-                        // 15 next bits = length
-                        let length = chars_to_num(&data[7..22]);
-                        let (packets, new_next) = Self::get_packets(&data[22..], Operator::Length(length));
-                        next = new_next;
+                        let length = chars_to_num(&data[*next..*next + 15]);
+                        *next += 15;
+
+                        let stop_at = *next + length;
+                        while *next < stop_at {
+                            let packet = Self::parse(data, next);
+        
+                            packets.push(packet);
+                        }
 
                         (Some(Operator::Length(length)), packets, None)
                     }
                     '1' => {
-                        // 11 next bits = number
-                        let number = chars_to_num(&data[7..18]);
-                        let (packets, new_next) = Self::get_packets(&data[18..], Operator::Number(number));
-                        next = new_next;
+                        let number = chars_to_num(&data[*next..*next + 11]);
+                        *next += 11;
+                        
+                        for _ in 0..number {
+                            let packet = Self::parse(data, next);
+        
+                            packets.push(packet);
+                        }
                         
                         (Some(Operator::Number(number)), packets, None)
                     }
@@ -68,87 +93,13 @@ impl Packet {
             }
         };
 
-        (Self {
+        Self {
             version,
             type_id,
             operator,
             sub_packets,
             number,
-        },
-        next)
-    }
-
-    fn get_packets(bits: &[char], operator: Operator) -> (Vec<Self>, usize) {
-        let mut packets = Vec::new();
-        let mut next = 0;
-
-        match operator {
-            Operator::Length(n) => {
-                // Length of bits
-                while next < n {
-                    if bits[next..].len() == 0 {
-                        break;
-                    }
-
-                    println!("===== LENGTH =====");
-                    display(&bits[next..]);
-
-                    let (packet, new_next) = Self::from_binary(&bits[next..]);
-                    next += 6 + new_next; // Add version and type ID
-                    dbg!(next);
-
-                    packets.push(packet);
-                }
-            }
-            Operator::Number(n) => {
-                // Number of sub packets
-                for i in 0..n {
-                    if i == 1 {
-                        println!("===== 2 =====");
-                        next += 16;
-                        display(&bits[next..]);
-                        dbg!(next);
-                        println!("===== = =====");
-                        break;
-                    }
-
-                    dbg!(next);
-
-                    println!("===== NUMBER =====");
-                    display(&bits[next..]);
-
-                    let (packet, new_next) = Self::from_binary(&bits[next..]);
-                    next += 6 + new_next; // Add version and type ID
-                    dbg!(next);
-
-                    packets.push(packet);
-                }
-            }
         }
-        
-        (packets, next)
-    }
-
-    fn get_number(bits: &[char]) -> (usize, usize) {
-        let mut header = bits.first().unwrap();
-        let mut result = Vec::new();
-        let mut index = 1;
-
-        while *header != '0' {
-            for _ in 0..4 {
-                result.push(bits[index]);
-                index += 1;
-            }
-            header = &bits[index];
-            index += 1;
-        }
-
-        for _ in 0..4 {
-            result.push(bits[index]);
-            index += 1;
-        }
-        
-        (chars_to_num(&result), index)
     }
 }
 
@@ -157,13 +108,12 @@ fn chars_to_num(c: &[char]) -> usize {
     usize::from_str_radix(&c, 2).unwrap()
 }
 
-fn display(d: &[char]) {
+fn _display(d: &[char]) {
     for c in d {
         print!("{}", c);
     }
     println!();
 }
-
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data(INPUT)));
@@ -171,7 +121,7 @@ fn main() {
 }
 
 fn part1(input: Vec<char>) -> usize {
-    let (packet, _) = Packet::from_binary(&input);
+    let packet = Packet::parse(&input, &mut 0);
     dbg!(&packet);
 
     let mut sum = 0;
@@ -195,28 +145,13 @@ fn part2(_input: Vec<char>) -> usize {
 
 #[test]
 fn test_part1() {
-    // assert_eq!(6, part1(get_data("D2FE28")));
-    // assert_eq!(9, part1(get_data("38006F45291200")));
-    // assert_eq!(14, part1(get_data("EE00D40C823060")));
-    // assert_eq!(16, part1(get_data("8A004A801A8002F478")));
-
-    // 011 000 1 00000000010 00000000000000000101100001000101010110001011001000100000000010000100011000111000110100
-    // v = 3, t = 0, number = 2 =>
-    //   sub => 000 000 0 000000000010110 0001000101010110001011 | 001 000 1 00000000010 000 100 01100 011 100 01101 00
-    //   sub => 00000000000000000101100001000 101010110001011 001000100000000010000100011000111000110100
-    //      v = 0, t = 0, length (000000000010110) = 22
-    //         sub => 000 100 0 1010 || 101 100 0 1011
-    //             v = 0, t = 4, value = 10
-    //             v = 5, t = 4, value = 11
-    //      v = 1, t = 0, number = 2
-    // 1001000100000000010000100011000111000110100
-    // 0110001011001000100000000010000100011000111000110100
-    //         sub => 000 100 0 1100 || 011 100 0 1101 || 00
-    //             v = 0, t = 4, value = 12
-    //             v = 3, t = 4, value = 13
+    assert_eq!(6, part1(get_data("D2FE28")));
+    assert_eq!(9, part1(get_data("38006F45291200")));
+    assert_eq!(14, part1(get_data("EE00D40C823060")));
+    assert_eq!(16, part1(get_data("8A004A801A8002F478")));
     assert_eq!(12, part1(get_data("620080001611562C8802118E34")));
-    // assert_eq!(23, part1(get_data("C0015000016115A2E0802F182340")));
-    // assert_eq!(31, part1(get_data("A0016C880162017C3686B18A3D4780")));
+    assert_eq!(23, part1(get_data("C0015000016115A2E0802F182340")));
+    assert_eq!(31, part1(get_data("A0016C880162017C3686B18A3D4780")));
     // assert_eq!(0, part1(get_data(INPUT)));
 }
 
