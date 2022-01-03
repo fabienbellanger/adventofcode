@@ -16,16 +16,9 @@ enum TypeId {
 }
 
 #[derive(Debug)]
-enum Operator {
-    Length(usize),
-    Number(usize),
-}
-
-#[derive(Debug)]
 struct Packet {
     version: usize,
     type_id: TypeId,
-    _operator: Option<Operator>,
     sub_packets: Vec<Packet>,
     number: Option<usize>,
 }
@@ -49,7 +42,7 @@ impl Packet {
 
         let mut packets = Vec::new();
 
-        let (operator, sub_packets, number) = match type_id {
+        let (sub_packets, number) = match type_id {
             TypeId::Literal => {
                 let mut header = data[*next];
                 let mut result = Vec::new();
@@ -69,7 +62,7 @@ impl Packet {
                     *next += 1;
                 }
 
-                (None, vec![], Some(chars_to_num(&result)))
+                (vec![], Some(chars_to_num(&result)))
             }
             _ => {
                 let op = data[*next];
@@ -87,7 +80,7 @@ impl Packet {
                             packets.push(packet);
                         }
 
-                        (Some(Operator::Length(length)), packets, None)
+                        (packets, None)
                     }
                     '1' => {
                         let number = chars_to_num(&data[*next..*next + 11]);
@@ -99,7 +92,7 @@ impl Packet {
                             packets.push(packet);
                         }
 
-                        (Some(Operator::Number(number)), packets, None)
+                        (packets, None)
                     }
                     _ => panic!("invalid char"),
                 }
@@ -109,7 +102,6 @@ impl Packet {
         Self {
             version,
             type_id,
-            _operator: operator,
             sub_packets,
             number,
         }
