@@ -6,7 +6,13 @@ const INPUT: &str = "620D79802F60098803B10E20C3C1007A2EC4C84136F0600BCB8AD0066E2
 #[derive(Debug, PartialEq)]
 enum TypeId {
     Literal,
-    Operator,
+    Sum,
+    Product,
+    Min,
+    Max,
+    Greather,
+    Less,
+    Equal,
 }
 
 #[derive(Debug)]
@@ -29,8 +35,15 @@ impl Packet {
         let version = chars_to_num(&data[*next..*next + 3]);
         let type_id = chars_to_num(&data[*next + 3..*next + 6]);
         let type_id = match type_id {
+            0 => TypeId::Sum,
+            1 => TypeId::Product,
+            2 => TypeId::Min,
+            3 => TypeId::Max,
             4 => TypeId::Literal,
-            _ => TypeId::Operator,
+            5 => TypeId::Greather,
+            6 => TypeId::Less,
+            7 => TypeId::Equal,
+            _ => panic!("invalid type ID"),
         };
         *next += 6;
 
@@ -57,8 +70,8 @@ impl Packet {
                 }
 
                 (None, vec![], Some(chars_to_num(&result)))
-            },
-            TypeId::Operator => {
+            }
+            _ => {
                 let op = data[*next];
                 *next += 1;
 
@@ -70,7 +83,7 @@ impl Packet {
                         let stop_at = *next + length;
                         while *next < stop_at {
                             let packet = Self::parse(data, next);
-        
+
                             packets.push(packet);
                         }
 
@@ -79,16 +92,16 @@ impl Packet {
                     '1' => {
                         let number = chars_to_num(&data[*next..*next + 11]);
                         *next += 11;
-                        
+
                         for _ in 0..number {
                             let packet = Self::parse(data, next);
-        
+
                             packets.push(packet);
                         }
-                        
+
                         (Some(Operator::Number(number)), packets, None)
                     }
-                    _ => panic!("Invalid char"),
+                    _ => panic!("invalid char"),
                 }
             }
         };
@@ -122,24 +135,29 @@ fn main() {
 
 fn part1(input: Vec<char>) -> usize {
     let packet = Packet::parse(&input, &mut 0);
-    dbg!(&packet);
 
     let mut sum = 0;
     let mut list = Vec::new();
     list.push(packet);
-    
+
     while let Some(packet) = list.pop() {
         sum += packet.version;
 
-        if packet.type_id == TypeId::Operator {
-            // TODO: Compute sub packets
+        if packet.type_id != TypeId::Literal {
+            for sub_packet in packet.sub_packets {
+                list.push(sub_packet);
+            }
         }
     }
 
     sum
 }
 
-fn part2(_input: Vec<char>) -> usize {
+fn part2(input: Vec<char>) -> usize {
+    let packet = Packet::parse(&input, &mut 0);
+
+    dbg!(&packet);
+
     0
 }
 
@@ -152,13 +170,20 @@ fn test_part1() {
     assert_eq!(12, part1(get_data("620080001611562C8802118E34")));
     assert_eq!(23, part1(get_data("C0015000016115A2E0802F182340")));
     assert_eq!(31, part1(get_data("A0016C880162017C3686B18A3D4780")));
-    // assert_eq!(0, part1(get_data(INPUT)));
+    assert_eq!(936, part1(get_data(INPUT)));
 }
 
 #[test]
 fn test_part2() {
-    // assert_eq!(168, part2(get_data("test.txt")));
-    // assert_eq!(97164301, part2(get_data(INPUT)));
+    assert_eq!(3, part2(get_data("C200B40A82")));
+    assert_eq!(54, part2(get_data("04005AC33890")));
+    assert_eq!(7, part2(get_data("880086C3E88112")));
+    assert_eq!(9, part2(get_data("CE00C43D881120")));
+    assert_eq!(1, part2(get_data("D8005AC2A8F0")));
+    assert_eq!(0, part2(get_data("F600BC2D8F")));
+    assert_eq!(0, part2(get_data("9C005AC2F8F0")));
+    assert_eq!(1, part2(get_data("9C0141080250320F1802104A08")));
+    assert_eq!(0, part2(get_data(INPUT)));
 }
 
 fn get_data(input: &str) -> Vec<char> {
