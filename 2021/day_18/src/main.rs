@@ -46,6 +46,10 @@ impl Number {
         todo!();
         self
     }
+
+    fn magnitude(&self) -> usize {
+        0
+    }
 }
 
 fn main() {
@@ -92,6 +96,46 @@ mod tests {
         let n2 = Number::parse(&mut String::from("[[3,4],5]").chars().collect());
 
         assert_eq!(String::from("[[1,2],[[3,4],5]]"), Number::print(&n1.add(n2)));
+    }
+
+    #[test]
+    fn test_magnitude() {
+        assert_eq!(
+            143,
+            Number::magnitude(&Number::parse(&mut String::from("[[1,2],[[3,4],5]]").chars().collect()))
+        );
+        assert_eq!(
+            1384,
+            Number::magnitude(&Number::parse(
+                &mut String::from("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]").chars().collect()
+            ))
+        );
+        assert_eq!(
+            445,
+            Number::magnitude(&Number::parse(
+                &mut String::from("[[[[1,1],[2,2]],[3,3]],[4,4]]").chars().collect()
+            ))
+        );
+        assert_eq!(
+            791,
+            Number::magnitude(&Number::parse(
+                &mut String::from("[[[[3,0],[5,3]],[4,4]],[5,5]]").chars().collect()
+            ))
+        );
+        assert_eq!(
+            1137,
+            Number::magnitude(&Number::parse(
+                &mut String::from("[[[[5,0],[7,4]],[5,5]],[6,6]]").chars().collect()
+            ))
+        );
+        assert_eq!(
+            3488,
+            Number::magnitude(&Number::parse(
+                &mut String::from("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]")
+                    .chars()
+                    .collect()
+            ))
+        );
     }
 
     #[test]
