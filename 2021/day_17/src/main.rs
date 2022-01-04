@@ -8,12 +8,13 @@ struct Position {
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data("input.txt")));
-    // println!("Part 2 result: {}", part2(get_data("input.txt")));
+    println!("Part 2 result: {}", part2(get_data("input.txt")));
 }
 
 fn reached_target(target: &(Position, Position), speed: (isize, isize)) -> Option<isize> {
     let mut position = Position { x: speed.0, y: speed.1 };
-    let mut reached = false;
+    let mut reached =
+        position.x >= target.0.x && position.x <= target.1.x && position.y <= target.0.y && position.y >= target.1.y;
     let mut speed = speed;
     let mut max_height = speed.1;
 
@@ -45,41 +46,35 @@ fn reached_target(target: &(Position, Position), speed: (isize, isize)) -> Optio
     }
 }
 
-fn sum_nth(n: isize) -> isize {
-    n * (n + 1) / 2
+fn solve(target: (Position, Position)) -> (isize, usize) {
+    let mut number = 0;
+    let mut max_height = 0;
+
+    for x in 1..=target.1.x {
+        for y in target.1.y..=-target.1.y {
+            if let Some(height) = reached_target(&target, (x, y)) {
+                number += 1;
+
+                if height > max_height {
+                    max_height = height;
+                }
+            }
+        }
+    }
+
+    (max_height, number)
 }
 
 fn part1(target: (Position, Position)) -> isize {
-    dbg!(reached_target(&target, (22, 24)));
-    dbg!(reached_target(&target, (22, 77)));
+    let (h, _) = solve(target);
 
-    let mut x = 0;
-    while !(sum_nth(x) >= target.0.x && sum_nth(x) <= target.1.x) {
-        x += 1;
-    }
-
-    let mut y = 0;
-    let mut max_height = reached_target(&target, (x, y)).unwrap_or(0);
-
-    loop {
-        let height = reached_target(&target, (x, y)).unwrap_or(0);
-        if height > max_height {
-            max_height = height;
-        }
-
-        y += 1;
-
-        // TODO: Bof, trouvé une vraie condition d'arret...
-        if y == 2000 {
-            break;
-        }
-    }
-
-    max_height
+    h
 }
 
-fn part2() -> usize {
-    0
+fn part2(target: (Position, Position)) -> usize {
+    let (_, n) = solve(target);
+
+    n
 }
 
 #[test]
@@ -90,8 +85,8 @@ fn test_part1() {
 
 #[test]
 fn test_part2() {
-    // assert_eq!(168, part2(get_data("test.txt")));
-    // assert_eq!(97164301, part2(get_data("input.txt")));
+    assert_eq!(112, part2(get_data("test.txt")));
+    assert_eq!(940, part2(get_data("input.txt")));
 }
 
 fn get_data(file: &str) -> (Position, Position) {
