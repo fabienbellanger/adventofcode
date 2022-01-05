@@ -26,11 +26,11 @@ impl Number {
                 let second = Self::parse(data);
                 *data = data[1..].to_vec(); // => ']'
 
-                Number::Pair(Box::new(first), Box::new(second))
+                Self::Pair(Box::new(first), Box::new(second))
             }
             n => {
                 // Regular
-                let n = Number::Regular(n.to_digit(10).unwrap() as usize);
+                let n = Self::Regular(n.to_digit(10).unwrap() as usize);
                 *data = data[1..].to_vec();
 
                 n
@@ -44,7 +44,7 @@ impl Number {
 
     fn split(self, stop: &mut bool) -> Self {
         match self {
-            Number::Regular(d) => {
+            Self::Regular(d) => {
                 if d > 9 {
                     let middle = d / 2;
                     let first = middle;
@@ -52,22 +52,22 @@ impl Number {
 
                     *stop = true;
 
-                    Number::Pair(Box::new(Number::Regular(first)), Box::new(Number::Regular(second)))
+                    Self::Pair(Box::new(Self::Regular(first)), Box::new(Self::Regular(second)))
                 } else {
                     self
                 }
             }
-            Number::Pair(a, b) => {
+            Self::Pair(a, b) => {
                 if *stop {
-                    return Number::Pair(a, b);
+                    return Self::Pair(a, b);
                 }
 
                 let a = a.split(stop);
 
                 if *stop {
-                    Number::Pair(Box::new(a), b)
+                    Self::Pair(Box::new(a), b)
                 } else {
-                    Number::Pair(Box::new(a), Box::new(b.split(stop)))
+                    Self::Pair(Box::new(a), Box::new(b.split(stop)))
                 }
             }
         }
@@ -89,7 +89,7 @@ impl Number {
                 } else {
                 }
 
-                (None, self, None)
+                (None, Self::Pair(a, b), None)
             }
             Self::Regular(_) => (None, self, None),
         }
@@ -134,7 +134,7 @@ mod tests {
     #[test]
     fn test_print_parse_number() {
         assert_eq!(
-            String::from("[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]"),
+            "[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]",
             Number::print(&Number::parse(
                 &mut String::from("[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]")
                     .chars()
@@ -157,6 +157,9 @@ mod tests {
         let expected = Number::Pair(Box::new(Number::Regular(7)), Box::new(Number::Regular(8)));
         assert_eq!(n1.split(&mut true), expected);
     }
+
+    #[test]
+    fn test_explode() {}
 
     #[test]
     fn test_magnitude() {
