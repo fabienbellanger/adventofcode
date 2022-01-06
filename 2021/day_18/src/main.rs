@@ -38,6 +38,35 @@ impl Number {
         }
     }
 
+    fn get_regular(self) -> usize {
+        match self {
+            Self::Regular(v) => v,
+            _ => panic!("not regular number"),
+        }
+    }
+
+    fn add_to_left(&mut self, value: usize) {
+        match self {
+            Number::Pair(_left, right) => {
+                right.add_to_left(value);
+            }
+            Number::Regular(r) => {
+                *r += value;
+            }
+        }
+    }
+
+    fn add_to_right(&mut self, value: usize) {
+        match self {
+            Number::Pair(left, _right) => {
+                left.add_to_right(value);
+            }
+            Number::Regular(r) => {
+                *r += value;
+            }
+        }
+    }
+
     fn add(self, number: Self) -> Self {
         Self::Pair(Box::new(self), Box::new(number))
     }
@@ -74,38 +103,61 @@ impl Number {
     }
 
     fn explode(self, depth: usize, exploded: &mut bool) -> (Option<usize>, Number, Option<usize>) {
-        // Pour faire exploser une paire, la valeur de gauche de la paire est ajoutée
-        // au premier nombre régulier à gauche de la paire qui explose (s'il y en a),
-        // et la valeur de droite de la paire est ajoutée au premier nombre régulier
-        // à droite de la paire qui explose (s'il y en a). Les paires explosives
-        // seront toujours composées de deux nombres réguliers.
-        // Ensuite, la paire explosive entière est remplacée par le nombre régulier 0.
-        // Return : (left value, Number, right value)
         match self {
-            Self::Pair(left, right) => {
+            Self::Pair(left, mut right) => {
                 match depth.cmp(&3) {
                     Ordering::Greater => (None, Self::Pair(left, right), None),
                     Ordering::Less => {
                         // Explode left first
-                        let (left_val, left, right_val) = left.explode(depth + 1, exploded);
+                        let (left_val, mut left, mut right_val) = left.explode(depth + 1, exploded);
+                        if let Some(right_val) = right_val {
+                            right.add_to_right(right_val);
+                        }
 
-                        if !*exploded {
-                            // Explode right
+                        if *exploded {
+                            (left_val, Self::Pair(Box::new(left), right), right_val)
+                        } else {
+                            // Explode right if left not explode
                             let (left_val, right, right_val) = right.explode(depth + 1, exploded);
+                            if let Some(left_val) = left_val {
+                                left.add_to_right(left_val);
+                            }
 
                             (left_val, Self::Pair(Box::new(left), Box::new(right)), right_val)
-                        } else {
-                            (left_val, Self::Pair(Box::new(left), right), right_val)
                         }
                     }
                     Ordering::Equal => {
-                        // Explode on the left?
-                        if let Number::Pair(l, r) = *left {}
+                        match (*left, *right) {
+                            (Self::Pair(left, right), mut value) => {
+                                *exploded = true;
 
-                        // Explode on the right?
-                        if let Number::Pair(l, r) = *right {}
+                                // left and right must be regular number
+                                let left = left.get_regular();
+                                let right = right.get_regular();
+                                value.add_to_right(right);
 
-                        (None, Self::Pair(left, right), None)
+                                (
+                                    Some(left),
+                                    Self::Pair(Box::new(Self::Regular(0)), Box::new(value)),
+                                    None,
+                                )
+                            }
+                            (mut value, Self::Pair(left, right)) => {
+                                *exploded = true;
+
+                                // left and right must be regular number
+                                let left = left.get_regular();
+                                let right = right.get_regular();
+                                value.add_to_left(left);
+
+                                (
+                                    None,
+                                    Self::Pair(Box::new(value), Box::new(Self::Regular(0))),
+                                    Some(right),
+                                )
+                            }
+                            (left, right) => (None, Self::Pair(Box::new(left), Box::new(right)), None),
+                        }
                     }
                 }
             }
@@ -183,6 +235,21 @@ mod tests {
 
         let number = Number::parse(&mut String::from("[7,[6,[5,[4,[3,2]]]]]").chars().collect());
         assert_eq!("[7,[6,[5,[7,0]]]]", Number::print(&number.explode(0, &mut false).1));
+
+        let number = Number::parse(&mut String::from("[[6,[5,[4,[3,2]]]],1]").chars().collect());
+        assert_eq!("[[6,[5,[7,0]]],3]", Number::print(&number.explode(0, &mut false).1));
+
+        let number = Number::parse(&mut String::from("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]").chars().collect());
+        assert_eq!(
+            "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]",
+            Number::print(&number.explode(0, &mut false).1)
+        );
+
+        let number = Number::parse(&mut String::from("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]").chars().collect());
+        assert_eq!(
+            "[[3,[2,[8,0]]],[9,[5,[7,0]]]]",
+            Number::print(&number.explode(0, &mut false).1)
+        );
     }
 
     #[test]
