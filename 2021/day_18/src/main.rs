@@ -11,7 +11,7 @@ impl Number {
         match self {
             Self::Regular(d) => format!("{}", d),
             Self::Pair(a, b) => {
-                format!("[{},{}]", a.print(), b.print(),)
+                format!("[{},{}]", a.print(), b.print())
             }
         }
     }
