@@ -1,4 +1,4 @@
-use std::fs;
+use std::{cmp::Ordering, fs};
 
 #[derive(Debug, PartialEq)]
 enum Number {
@@ -74,7 +74,6 @@ impl Number {
     }
 
     fn explode(self, depth: usize, exploded: &mut bool) -> (Option<usize>, Number, Option<usize>) {
-        // depth == 3
         // Pour faire exploser une paire, la valeur de gauche de la paire est ajoutée
         // au premier nombre régulier à gauche de la paire qui explose (s'il y en a),
         // et la valeur de droite de la paire est ajoutée au premier nombre régulier
@@ -83,13 +82,32 @@ impl Number {
         // Ensuite, la paire explosive entière est remplacée par le nombre régulier 0.
         // Return : (left value, Number, right value)
         match self {
-            Self::Pair(a, b) => {
-                // Valeur à droite ou à gauche [Regular, Regular] ?
-                if depth == 3 {
-                } else {
-                }
+            Self::Pair(left, right) => {
+                match depth.cmp(&3) {
+                    Ordering::Greater => (None, Self::Pair(left, right), None),
+                    Ordering::Less => {
+                        // Explode left first
+                        let (left_val, left, right_val) = left.explode(depth + 1, exploded);
 
-                (None, Self::Pair(a, b), None)
+                        if !*exploded {
+                            // Explode right
+                            let (left_val, right, right_val) = right.explode(depth + 1, exploded);
+
+                            (left_val, Self::Pair(Box::new(left), Box::new(right)), right_val)
+                        } else {
+                            (left_val, Self::Pair(Box::new(left), right), right_val)
+                        }
+                    }
+                    Ordering::Equal => {
+                        // Explode on the left?
+                        if let Number::Pair(l, r) = *left {}
+
+                        // Explode on the right?
+                        if let Number::Pair(l, r) = *right {}
+
+                        (None, Self::Pair(left, right), None)
+                    }
+                }
             }
             Self::Regular(_) => (None, self, None),
         }
@@ -159,7 +177,13 @@ mod tests {
     }
 
     #[test]
-    fn test_explode() {}
+    fn test_explode() {
+        let number = Number::parse(&mut String::from("[[[[[9,8],1],2],3],4]").chars().collect());
+        assert_eq!("[[[[0,9],2],3],4]", Number::print(&number.explode(0, &mut false).1));
+
+        let number = Number::parse(&mut String::from("[7,[6,[5,[4,[3,2]]]]]").chars().collect());
+        assert_eq!("[7,[6,[5,[7,0]]]]", Number::print(&number.explode(0, &mut false).1));
+    }
 
     #[test]
     fn test_magnitude() {
