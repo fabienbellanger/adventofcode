@@ -106,11 +106,10 @@ impl Number {
         match self {
             Self::Pair(left, mut right) => {
                 match depth.cmp(&3) {
-                    Ordering::Greater => (None, Self::Pair(left, right), None),
-                    Ordering::Less => {
+                    Ordering::Greater | Ordering::Less => {
                         // Explode left first
                         let (left_val, mut left, mut right_val) = left.explode(depth + 1, exploded);
-                        if let Some(right_val) = right_val {
+                        if let Some(right_val) = right_val.take() {
                             right.add_to_right(right_val);
                         }
 
@@ -118,9 +117,9 @@ impl Number {
                             (left_val, Self::Pair(Box::new(left), right), right_val)
                         } else {
                             // Explode right if left not explode
-                            let (left_val, right, right_val) = right.explode(depth + 1, exploded);
-                            if let Some(left_val) = left_val {
-                                left.add_to_right(left_val);
+                            let (mut left_val, right, right_val) = right.explode(depth + 1, exploded);
+                            if let Some(left_val) = left_val.take() {
+                                left.add_to_left(left_val);
                             }
 
                             (left_val, Self::Pair(Box::new(left), Box::new(right)), right_val)
@@ -166,8 +165,29 @@ impl Number {
     }
 
     fn reduce(self) -> Self {
-        todo!();
-        self
+        let mut finished = false;
+        let mut new = self;
+
+        while !finished {
+            let mut tries_number = 0;
+            let mut has_exploded = true;
+
+            while has_exploded {
+                has_exploded = false;
+                new = new.explode(0, &mut has_exploded).1;
+
+                tries_number += 1;
+            }
+
+            let mut has_split = false;
+            new = new.split(&mut has_split);
+
+            if tries_number == 1 && !has_split {
+                finished = true;
+            }
+        }
+
+        new
     }
 
     fn magnitude(&self) -> usize {
@@ -239,7 +259,6 @@ mod tests {
         let number = Number::parse(&mut String::from("[[6,[5,[4,[3,2]]]],1]").chars().collect());
         assert_eq!("[[6,[5,[7,0]]],3]", Number::print(&number.explode(0, &mut false).1));
 
-        // TODO: Dérouler l'algo
         let number = Number::parse(&mut String::from("[[6,[5,[4,[3,2]]]],[1,2]]").chars().collect());
         assert_eq!("[[6,[5,[7,0]]],[3,2]]", Number::print(&number.explode(0, &mut false).1));
 
@@ -266,9 +285,9 @@ mod tests {
     fn test_reduce() {
         assert_eq!(
             "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]",
-            Number::print(&Number::parse(
-                &mut String::from("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]").chars().collect()
-            ))
+            Number::print(
+                &Number::parse(&mut String::from("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]").chars().collect()).reduce()
+            )
         );
     }
 
