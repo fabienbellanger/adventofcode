@@ -15,7 +15,7 @@ fn part2() -> usize {
 
 #[test]
 fn test_part1() {
-    // assert_eq!(0, part1(get_data("test.txt")));
+    // assert_eq!(79, part1(get_data("test.txt")));
     // assert_eq!(0, part1(get_data("input.txt")));
 }
 

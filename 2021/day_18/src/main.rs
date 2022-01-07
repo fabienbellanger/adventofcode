@@ -1,17 +1,17 @@
 use std::{cmp::Ordering, fs};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 enum Number {
     Regular(usize),
     Pair(Box<Number>, Box<Number>),
 }
 
 impl Number {
-    fn print(&self) -> String {
+    fn _print(&self) -> String {
         match self {
             Self::Regular(d) => format!("{}", d),
             Self::Pair(a, b) => {
-                format!("[{},{}]", a.print(), b.print())
+                format!("[{},{}]", a._print(), b._print())
             }
         }
     }
@@ -191,7 +191,11 @@ impl Number {
     }
 
     fn magnitude(&self) -> usize {
-        0
+        // For example, the magnitude of [9,1] is 3*9 + 2*1 = 29; the magnitude of [1,9] is 3*1 + 2*9 = 21. Magnitude calculations are recursive: the magnitude of [[9,1],[1,9]] is 3*29 + 2*21 = 129
+        match self {
+            Self::Regular(d) => *d,
+            Self::Pair(left, right) => 3 * left.magnitude() + 2 * right.magnitude(),
+        }
     }
 }
 
@@ -200,12 +204,34 @@ fn main() {
     println!("Part 2 result: {}", part2(get_data("input.txt")));
 }
 
-fn part1(_numbers: Vec<Number>) -> usize {
-    0
+fn part1(numbers: Vec<Number>) -> usize {
+    let mut final_number = numbers.first().unwrap().clone();
+
+    for number in numbers.into_iter().skip(1) {
+        final_number = final_number.add(number).reduce();
+    }
+
+    final_number.magnitude()
 }
 
-fn part2(_numbers: Vec<Number>) -> usize {
-    0
+fn part2(numbers: Vec<Number>) -> usize {
+    let mut max_magnitude = 0;
+
+    for n1 in &numbers {
+        for n2 in &numbers {
+            if n1 == n2 {
+                continue;
+            }
+
+            let magnitude = n1.clone().add(n2.clone()).reduce().magnitude();
+
+            if magnitude > max_magnitude {
+                max_magnitude = magnitude;
+            }
+        }
+    }
+
+    max_magnitude
 }
 
 fn get_data(file: &str) -> Vec<Number> {
@@ -225,7 +251,7 @@ mod tests {
     fn test_print_parse_number() {
         assert_eq!(
             "[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]",
-            Number::print(&Number::parse(
+            Number::_print(&Number::parse(
                 &mut String::from("[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]")
                     .chars()
                     .collect()
@@ -238,7 +264,7 @@ mod tests {
         let n1 = Number::parse(&mut String::from("[1,2]").chars().collect());
         let n2 = Number::parse(&mut String::from("[[3,4],5]").chars().collect());
 
-        assert_eq!(String::from("[[1,2],[[3,4],5]]"), Number::print(&n1.add(n2)));
+        assert_eq!(String::from("[[1,2],[[3,4],5]]"), Number::_print(&n1.add(n2)));
     }
 
     #[test]
@@ -251,33 +277,36 @@ mod tests {
     #[test]
     fn test_explode() {
         let number = Number::parse(&mut String::from("[[[[[9,8],1],2],3],4]").chars().collect());
-        assert_eq!("[[[[0,9],2],3],4]", Number::print(&number.explode(0, &mut false).1));
+        assert_eq!("[[[[0,9],2],3],4]", Number::_print(&number.explode(0, &mut false).1));
 
         let number = Number::parse(&mut String::from("[7,[6,[5,[4,[3,2]]]]]").chars().collect());
-        assert_eq!("[7,[6,[5,[7,0]]]]", Number::print(&number.explode(0, &mut false).1));
+        assert_eq!("[7,[6,[5,[7,0]]]]", Number::_print(&number.explode(0, &mut false).1));
 
         let number = Number::parse(&mut String::from("[[6,[5,[4,[3,2]]]],1]").chars().collect());
-        assert_eq!("[[6,[5,[7,0]]],3]", Number::print(&number.explode(0, &mut false).1));
+        assert_eq!("[[6,[5,[7,0]]],3]", Number::_print(&number.explode(0, &mut false).1));
 
         let number = Number::parse(&mut String::from("[[6,[5,[4,[3,2]]]],[1,2]]").chars().collect());
-        assert_eq!("[[6,[5,[7,0]]],[3,2]]", Number::print(&number.explode(0, &mut false).1));
+        assert_eq!(
+            "[[6,[5,[7,0]]],[3,2]]",
+            Number::_print(&number.explode(0, &mut false).1)
+        );
 
         let number = Number::parse(&mut String::from("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]").chars().collect());
         assert_eq!(
             "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]",
-            Number::print(&number.explode(0, &mut false).1)
+            Number::_print(&number.explode(0, &mut false).1)
         );
 
         let number = Number::parse(&mut String::from("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]").chars().collect());
         assert_eq!(
             "[[3,[2,[8,0]]],[9,[5,[7,0]]]]",
-            Number::print(&number.explode(0, &mut false).1)
+            Number::_print(&number.explode(0, &mut false).1)
         );
 
         let number = Number::parse(&mut String::from("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]").chars().collect());
         assert_eq!(
             "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]",
-            Number::print(&number.explode(0, &mut false).1)
+            Number::_print(&number.explode(0, &mut false).1)
         );
     }
 
@@ -285,7 +314,7 @@ mod tests {
     fn test_reduce() {
         assert_eq!(
             "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]",
-            Number::print(
+            Number::_print(
                 &Number::parse(&mut String::from("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]").chars().collect()).reduce()
             )
         );
@@ -293,53 +322,53 @@ mod tests {
 
     #[test]
     fn test_magnitude() {
-        // assert_eq!(
-        //     143,
-        //     Number::magnitude(&Number::parse(&mut String::from("[[1,2],[[3,4],5]]").chars().collect()))
-        // );
-        // assert_eq!(
-        //     1384,
-        //     Number::magnitude(&Number::parse(
-        //         &mut String::from("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]").chars().collect()
-        //     ))
-        // );
-        // assert_eq!(
-        //     445,
-        //     Number::magnitude(&Number::parse(
-        //         &mut String::from("[[[[1,1],[2,2]],[3,3]],[4,4]]").chars().collect()
-        //     ))
-        // );
-        // assert_eq!(
-        //     791,
-        //     Number::magnitude(&Number::parse(
-        //         &mut String::from("[[[[3,0],[5,3]],[4,4]],[5,5]]").chars().collect()
-        //     ))
-        // );
-        // assert_eq!(
-        //     1137,
-        //     Number::magnitude(&Number::parse(
-        //         &mut String::from("[[[[5,0],[7,4]],[5,5]],[6,6]]").chars().collect()
-        //     ))
-        // );
-        // assert_eq!(
-        //     3488,
-        //     Number::magnitude(&Number::parse(
-        //         &mut String::from("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]")
-        //             .chars()
-        //             .collect()
-        //     ))
-        // );
+        assert_eq!(
+            143,
+            Number::magnitude(&Number::parse(&mut String::from("[[1,2],[[3,4],5]]").chars().collect()))
+        );
+        assert_eq!(
+            1384,
+            Number::magnitude(&Number::parse(
+                &mut String::from("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]").chars().collect()
+            ))
+        );
+        assert_eq!(
+            445,
+            Number::magnitude(&Number::parse(
+                &mut String::from("[[[[1,1],[2,2]],[3,3]],[4,4]]").chars().collect()
+            ))
+        );
+        assert_eq!(
+            791,
+            Number::magnitude(&Number::parse(
+                &mut String::from("[[[[3,0],[5,3]],[4,4]],[5,5]]").chars().collect()
+            ))
+        );
+        assert_eq!(
+            1137,
+            Number::magnitude(&Number::parse(
+                &mut String::from("[[[[5,0],[7,4]],[5,5]],[6,6]]").chars().collect()
+            ))
+        );
+        assert_eq!(
+            3488,
+            Number::magnitude(&Number::parse(
+                &mut String::from("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]")
+                    .chars()
+                    .collect()
+            ))
+        );
     }
 
     #[test]
     fn test_part1() {
-        // assert_eq!(4140, part1(get_data("test.txt")));
-        // assert_eq!(344297, part1(get_data("input.txt")));
+        assert_eq!(4140, part1(get_data("test.txt")));
+        assert_eq!(3574, part1(get_data("input.txt")));
     }
 
     #[test]
     fn test_part2() {
-        // assert_eq!(168, part2(get_data("test.txt")));
-        // assert_eq!(97164301, part2(get_data("input.txt")));
+        assert_eq!(3993, part2(get_data("test.txt")));
+        assert_eq!(4763, part2(get_data("input.txt")));
     }
 }
