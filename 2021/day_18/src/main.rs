@@ -239,6 +239,10 @@ mod tests {
         let number = Number::parse(&mut String::from("[[6,[5,[4,[3,2]]]],1]").chars().collect());
         assert_eq!("[[6,[5,[7,0]]],3]", Number::print(&number.explode(0, &mut false).1));
 
+        // TODO: Dérouler l'algo
+        let number = Number::parse(&mut String::from("[[6,[5,[4,[3,2]]]],[1,2]]").chars().collect());
+        assert_eq!("[[6,[5,[7,0]]],[3,2]]", Number::print(&number.explode(0, &mut false).1));
+
         let number = Number::parse(&mut String::from("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]").chars().collect());
         assert_eq!(
             "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]",
@@ -249,6 +253,22 @@ mod tests {
         assert_eq!(
             "[[3,[2,[8,0]]],[9,[5,[7,0]]]]",
             Number::print(&number.explode(0, &mut false).1)
+        );
+
+        let number = Number::parse(&mut String::from("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]").chars().collect());
+        assert_eq!(
+            "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]",
+            Number::print(&number.explode(0, &mut false).1)
+        );
+    }
+
+    #[test]
+    fn test_reduce() {
+        assert_eq!(
+            "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]",
+            Number::print(&Number::parse(
+                &mut String::from("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]").chars().collect()
+            ))
         );
     }
 
