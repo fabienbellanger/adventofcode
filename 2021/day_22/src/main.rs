@@ -1,7 +1,7 @@
-use std::fs;
+use std::{collections::HashSet, fs};
 
 #[derive(Debug, Clone)]
-struct Point {
+struct Cube {
     x: isize,
     y: isize,
     z: isize,
@@ -10,8 +10,8 @@ struct Point {
 #[derive(Debug, Clone)]
 struct Step {
     turn_on: bool,
-    min_point: Point,
-    max_point: Point,
+    min_cube: Cube,
+    max_cube: Cube,
 }
 
 fn main() {
@@ -20,7 +20,13 @@ fn main() {
 }
 
 fn part1(steps: Vec<Step>) -> usize {
-    0
+    let mut cubes_on: HashSet<Cube> = HashSet::new();
+
+    for step in steps {
+        dbg!(&step);
+    }
+
+    cubes_on.len()
 }
 
 fn part2(steps: Vec<Step>) -> usize {
@@ -55,12 +61,12 @@ fn get_data(file: &str) -> Vec<Step> {
 
             Step {
                 turn_on: action == "on",
-                min_point: Point {
+                min_cube: Cube {
                     x: x_min.parse().unwrap(),
                     y: y_min.parse().unwrap(),
                     z: z_min.parse().unwrap(),
                 },
-                max_point: Point {
+                max_cube: Cube {
                     x: x_max.parse().unwrap(),
                     y: y_max.parse().unwrap(),
                     z: z_max.parse().unwrap(),
