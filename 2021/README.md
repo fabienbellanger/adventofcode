@@ -23,4 +23,4 @@ My [adventofcode.com](https://adventofcode.com/2021) solutions
 - [ ] Day 19 : Rust
 - [x] Day 20 : Rust
 - [x] Day 21 : Rust
-- [ ] Day 22 : Rust
+- [ ] Day 22 : Rust (Part 1 OK)

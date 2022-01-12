@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fs};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 struct Cube {
     x: isize,
     y: isize,
@@ -22,8 +22,30 @@ fn main() {
 fn part1(steps: Vec<Step>) -> usize {
     let mut cubes_on: HashSet<Cube> = HashSet::new();
 
+    // Limits
+    let min_cube = Cube { x: -50, y: -50, z: -50 };
+    let max_cube = Cube { x: 50, y: 50, z: 50 };
+
     for step in steps {
-        dbg!(&step);
+        if step.min_cube.x >= min_cube.x
+            && step.min_cube.y >= min_cube.y
+            && step.min_cube.z >= min_cube.z
+            && step.max_cube.x <= max_cube.x
+            && step.max_cube.y <= max_cube.y
+            && step.max_cube.z <= max_cube.z
+        {
+            for x in step.min_cube.x..=step.max_cube.x {
+                for y in step.min_cube.y..=step.max_cube.y {
+                    for z in step.min_cube.z..=step.max_cube.z {
+                        if step.turn_on {
+                            cubes_on.insert(Cube { x, y, z });
+                        } else {
+                            cubes_on.remove(&Cube { x, y, z });
+                        }
+                    }
+                }
+            }
+        }
     }
 
     cubes_on.len()
@@ -36,13 +58,13 @@ fn part2(steps: Vec<Step>) -> usize {
 #[test]
 fn test_part1() {
     assert_eq!(39, part1(get_data("test.txt")));
-    assert_eq!(590784, part1(get_data("test_big.txt")));
-    // assert_eq!(0, part1(get_data("input.txt")));
+    assert_eq!(474140, part1(get_data("test_big.txt")));
+    assert_eq!(570915, part1(get_data("input.txt")));
 }
 
 #[test]
 fn test_part2() {
-    // assert_eq!(0, part2(get_data("test.txt")));
+    assert_eq!(2758514936282235, part2(get_data("test_big.txt")));
     // assert_eq!(0, part2(get_data("input.txt")));
 }
 
