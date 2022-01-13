@@ -10,8 +10,28 @@ struct Cube {
 #[derive(Debug, Clone)]
 struct Step {
     turn_on: bool,
-    min_cube: Cube,
-    max_cube: Cube,
+    cuboid: Cuboid,
+}
+
+#[derive(Debug, Clone)]
+struct Cuboid {
+    min: Cube,
+    max: Cube,
+}
+
+impl Cuboid {
+    fn cubes_number(&self) -> usize {
+        ((self.max.x - self.min.x).abs() as usize + 1).pow(3)
+    }
+
+    fn contains(&self, cude: &Cube) -> bool {
+        todo!()
+    }
+
+    fn intersection(&self, cuboid: &Cuboid) {
+        // 1. Select min cuboid
+        // 2. Check for each cube if in larger cuboid
+    }
 }
 
 fn main() {
@@ -27,16 +47,18 @@ fn part1(steps: Vec<Step>) -> usize {
     let max_cube = Cube { x: 50, y: 50, z: 50 };
 
     for step in steps {
-        if step.min_cube.x >= min_cube.x
-            && step.min_cube.y >= min_cube.y
-            && step.min_cube.z >= min_cube.z
-            && step.max_cube.x <= max_cube.x
-            && step.max_cube.y <= max_cube.y
-            && step.max_cube.z <= max_cube.z
+        let cuboid = step.cuboid;
+
+        if cuboid.min.x >= min_cube.x
+            && cuboid.min.y >= min_cube.y
+            && cuboid.min.z >= min_cube.z
+            && cuboid.max.x <= max_cube.x
+            && cuboid.max.y <= max_cube.y
+            && cuboid.max.z <= max_cube.z
         {
-            for x in step.min_cube.x..=step.max_cube.x {
-                for y in step.min_cube.y..=step.max_cube.y {
-                    for z in step.min_cube.z..=step.max_cube.z {
+            for x in cuboid.min.x..=cuboid.max.x {
+                for y in cuboid.min.y..=cuboid.max.y {
+                    for z in cuboid.min.z..=cuboid.max.z {
                         if step.turn_on {
                             cubes_on.insert(Cube { x, y, z });
                         } else {
@@ -73,7 +95,7 @@ fn get_data(file: &str) -> Vec<Step> {
         .unwrap_or_else(|_| panic!("Cannot read the file {}", file))
         .trim()
         .lines()
-        .map(|line| {
+        .map(|line| -> Step {
             let (action, coords) = line.trim().split_once(' ').unwrap();
 
             let mut axis = coords.trim().split(',');
@@ -83,17 +105,39 @@ fn get_data(file: &str) -> Vec<Step> {
 
             Step {
                 turn_on: action == "on",
-                min_cube: Cube {
-                    x: x_min.parse().unwrap(),
-                    y: y_min.parse().unwrap(),
-                    z: z_min.parse().unwrap(),
-                },
-                max_cube: Cube {
-                    x: x_max.parse().unwrap(),
-                    y: y_max.parse().unwrap(),
-                    z: z_max.parse().unwrap(),
+                cuboid: Cuboid {
+                    min: Cube {
+                        x: x_min.parse().unwrap(),
+                        y: y_min.parse().unwrap(),
+                        z: z_min.parse().unwrap(),
+                    },
+                    max: Cube {
+                        x: x_max.parse().unwrap(),
+                        y: y_max.parse().unwrap(),
+                        z: z_max.parse().unwrap(),
+                    },
                 },
             }
         })
         .collect()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_cubes_number_in_cuboid() {
+        let cuboid = Cuboid {
+            min: Cube { x: 10, y: 10, z: 10 },
+            max: Cube { x: 12, y: 12, z: 12 },
+        };
+        assert_eq!(27, cuboid.cubes_number());
+
+        let cuboid = Cuboid {
+            min: Cube { x: -10, y: -10, z: -10 },
+            max: Cube { x: -10, y: -10, z: -10 },
+        };
+        assert_eq!(1, cuboid.cubes_number());
+    }
 }
