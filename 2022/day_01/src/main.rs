@@ -41,7 +41,7 @@ fn get_data(file: &str) -> Vec<Vec<usize>> {
         .trim()
         .split("\n\n")
         .into_iter()
-        .map(|part| part.split('\n').into_iter()
+        .map(|part| part.trim().split('\n').into_iter()
             .map(|line| line.parse::<usize>().unwrap())
             .collect::<Vec<usize>>())
         .collect()
