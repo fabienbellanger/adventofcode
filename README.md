@@ -9,3 +9,7 @@
 ## 2021
 
 [Solutions](2021/README.md)
+
+## 2022
+
+[Solutions](2022/README.md)
