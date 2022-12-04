@@ -31,7 +31,7 @@ fn part1(data: Vec<(HandShape, HandShape)>) -> usize {
     data.into_iter()
         .map(|(p1, p2)| match (p1.name, p2.name) {
             ('S', 'R') | ('P', 'S') | ('R', 'P') => 6 + p2.value,
-            ('R', 'S') | ('S', 'P') | ('P', 'R') => 0 + p2.value,
+            ('R', 'S') | ('S', 'P') | ('P', 'R') => p2.value,
             _ => 3 + p2.value,
         })
         .sum::<usize>()

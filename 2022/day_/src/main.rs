@@ -17,7 +17,7 @@ fn part1(data: Vec<String>) -> usize {
 #[test]
 fn test_part1() {
     assert_eq!(0, part1(get_data("test.txt")));
-    // assert_eq!(0, part1(get_data("input.txt"))); // 12936
+    // assert_eq!(0, part1(get_data("input.txt")));
 }
 
 // #[test]
