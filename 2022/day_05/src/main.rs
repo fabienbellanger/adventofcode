@@ -21,8 +21,15 @@ fn main() {
 }
 
 fn part1(data: Expedition) -> String {
-    dbg!(&data);
-    "".to_owned()
+    let moves = data.moves;
+    let mut stacks = data.stacks;
+    
+    let mut result = String::new();
+    for m in moves {
+        // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.drain
+    }
+
+    result
 }
 
 // fn part2(data: Expedition) -> String {
@@ -45,13 +52,33 @@ fn get_data(file: &str) -> Expedition {
     let content = fs::read_to_string(file)
         .expect("Cannot read the file input.txt");
 
-    let mut parts = content.trim().split("\n\n");
+    let mut parts = content.split("\n\n");
     let stacks_parts = parts.next().unwrap();
     let moves_parts = parts.next().unwrap();
 
     // Stacks
     // ------
-    let stacks = vec![];
+    let stacks_number = stacks_parts.split('\n').rev().take(1)
+        .map(|l| l.trim().chars()
+            .map(|c| c.to_digit(10).unwrap_or_default())
+            .max()
+            .unwrap_or_default())
+        .max()
+        .unwrap_or_default() as usize;
+    
+    let mut stacks: Vec<Stack> = vec![vec![];stacks_number]; 
+    stacks_parts.split('\n').rev().skip(1)
+        .for_each(|line| {
+            let list: Vec<char> = line.chars().collect();
+            for i in 0..stacks_number {
+                let j: usize = i * (stacks_number + 1) + 1;
+                if let Some(c) = list.get(j) {
+                    if *c != ' ' {
+                        stacks[i].push(*c);
+                    }
+                }
+            }
+        });
 
     // Moves
     // -----
@@ -64,10 +91,10 @@ fn get_data(file: &str) -> Expedition {
             let n = line_parts.next().unwrap().parse::<usize>().unwrap();
             
             line_parts.next();
-            let from = line_parts.next().unwrap().parse::<usize>().unwrap();
+            let from = line_parts.next().unwrap().parse::<usize>().unwrap() - 1;
             
             line_parts.next();
-            let to = line_parts.next().unwrap().parse::<usize>().unwrap();
+            let to = line_parts.next().unwrap().parse::<usize>().unwrap() - 1;
 
             Move{n, from, to}
         })
