@@ -17,10 +17,10 @@ struct Expedition {
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data("input.txt")));
-    // println!("Part 2 result: {}", part2(get_data("input.txt")));
+    println!("Part 2 result: {}", part2(get_data("input.txt")));
 }
 
-fn part1(data: Expedition) -> String {
+fn process(data: Expedition, rev: bool) -> String {
     let mut stacks = data.stacks;
     let mut result = String::new();
 
@@ -29,7 +29,9 @@ fn part1(data: Expedition) -> String {
         // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.append
         let nb = stacks[m.from].clone().len();
         let mut u: Vec<_> = stacks[m.from].drain(nb-m.n..).collect();
-        u.reverse();
+        if rev {
+            u.reverse();
+        }
 
         stacks[m.to].append(&mut u);
     }
@@ -42,22 +44,27 @@ fn part1(data: Expedition) -> String {
 
     result
 }
+ 
 
-// fn part2(data: Expedition) -> String {
-//     "".to_owned()
-// }
+fn part1(data: Expedition) -> String {
+    process(data, true)
+}
+
+fn part2(data: Expedition) -> String {
+    process(data, false)
+}
 
 #[test]
 fn test_part1() {
     assert_eq!(String::from("CMZ"), part1(get_data("test.txt")));
-    // assert_eq!(String::from(""), part1(get_data("input.txt")));
+    assert_eq!(String::from("SPFMVDTZT"), part1(get_data("input.txt")));
 }
 
-// #[test]
-// fn test_part2() {
-//     assert_eq!(0, part2(get_data("test.txt")));
-//     // assert_eq!(0, part2(get_data("input.txt")));
-// }
+#[test]
+fn test_part2() {
+    assert_eq!("MCD", part2(get_data("test.txt")));
+    assert_eq!("ZFSJBPRFP", part2(get_data("input.txt")));
+}
 
 fn get_data(file: &str) -> Expedition {
     let content = fs::read_to_string(file)
@@ -81,11 +88,11 @@ fn get_data(file: &str) -> Expedition {
     stacks_parts.split('\n').rev().skip(1)
         .for_each(|line| {
             let list: Vec<char> = line.chars().collect();
-            for i in 0..stacks_number {
-                let j: usize = i * (stacks_number + 1) + 1;
+            for (i, stack) in stacks.iter_mut().enumerate().take(stacks_number) {
+                let j: usize = i * (3 + 1) + 1;
                 if let Some(c) = list.get(j) {
                     if *c != ' ' {
-                        stacks[i].push(*c);
+                        stack.push(*c);
                     }
                 }
             }
