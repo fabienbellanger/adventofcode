@@ -21,12 +21,23 @@ fn main() {
 }
 
 fn part1(data: Expedition) -> String {
-    let moves = data.moves;
     let mut stacks = data.stacks;
-    
     let mut result = String::new();
-    for m in moves {
+
+    for m in data.moves {
         // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.drain
+        // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.append
+        let nb = stacks[m.from].clone().len();
+        let mut u: Vec<_> = stacks[m.from].drain(nb-m.n..).collect();
+        u.reverse();
+
+        stacks[m.to].append(&mut u);
+    }
+
+    for stack in stacks.iter_mut() {
+        if let Some(c) = stack.pop() {
+            result.push(c);
+        }
     }
 
     result
