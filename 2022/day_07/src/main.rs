@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, collections::{HashMap, VecDeque}};
 
 #[derive(Debug)]
 enum Output {
@@ -9,15 +9,58 @@ enum Output {
 
 #[derive(Debug)]
 enum Command {
-    CD(CD),
-    LS,
+    CdRoot,
+    CdParent,
+    CdChild(String),
 }
 
 #[derive(Debug)]
-enum CD {
-    Root,
-    Parent,
-    Child(String),
+struct File {
+    name: String,
+    size: usize,
+}
+
+fn build_outputs(outputs: Vec<Output>) -> HashMap<String, Vec<File>> {
+    dbg!(&outputs);
+
+    let mut result = HashMap::new();
+
+    let mut current_path = "";
+    let mut current: Vec<String> = Vec::new();
+
+    for output in outputs {
+        match output {
+            Output::File(name, size) => (),
+            Output::Directory(name) => (),
+            Output::Command(cmd) => match cmd {
+                Command::CdRoot => {
+                    current.clear();
+                    current.push("/".to_string());
+                    result.insert(current.join("+"), vec![]); // Use entry
+                    ()
+                },
+                Command::CdParent => {
+                    current.pop();
+                    ()
+                },
+                Command::CdChild(dir) => {
+                    // current.push_back(dir.clone());
+                    // // current_path.push_str(&dir);
+                    // // current_path.push('/');
+                    // let mut tmp = String::from(current_path);
+                    // tmp.push_str(&dir);
+                    // tmp.push('/');
+                    // current_path = tmp.as_str();
+                    // result.insert(current_path.to_string(), vec![]);
+                    current.push(dir);
+                    result.insert(current.join("+"), vec![]); // Use entry
+                    ()
+                },
+            }
+        }
+    }
+
+    result
 }
 
 fn main() {
@@ -26,7 +69,7 @@ fn main() {
 }
 
 fn part1(data: Vec<Output>) -> usize {
-    dbg!(&data);
+    dbg!(build_outputs(data));
     0
 }
 
@@ -51,22 +94,22 @@ fn get_data(file: &str) -> Vec<Output> {
         .expect("Cannot read the file input.txt")
         .trim()
         .lines()
-        .map(|line| {
-            if line.starts_with("$ ls") {
-                Output::Command(Command::LS)
-            } else if line.starts_with("$ cd ") {
+        .filter_map(|line| {
+            if line.starts_with("$ cd ") {
                 let (_, name) = line.split_once("$ cd ").unwrap();
-                Output::Command(Command::CD(match name {
-                    "/" => CD::Root,
-                    ".." => CD::Parent,
-                    _ => CD::Child(name.to_string())
+                Some(Output::Command(match name {
+                    "/" => Command::CdRoot,
+                    ".." => Command::CdParent,
+                    _ => Command::CdChild(name.to_string())
                 }))
             } else if line.starts_with("dir ") {
                 let (_, name) = line.split_once(' ').unwrap();
-                Output::Directory(name.to_string())
-            } else {
+                Some(Output::Directory(name.to_string()))
+            } else if !line.starts_with("$ ls"){
                 let (size, name) = line.split_once(' ').unwrap();
-                Output::File(size.parse::<usize>().unwrap_or_default(), name.to_string())
+                Some(Output::File(size.parse::<usize>().unwrap_or_default(), name.to_string()))
+            } else {
+                None
             }
         })
         .collect()
