@@ -1,10 +1,10 @@
-use std::{fs, collections::{HashMap, VecDeque}};
+use std::{fs, collections::{HashMap}};
 
 #[derive(Debug)]
 enum Output {
     Command(Command),
     Directory(String),
-    File(usize, String),
+    File(String, usize),
 }
 
 #[derive(Debug)]
@@ -20,41 +20,38 @@ struct File {
     size: usize,
 }
 
-fn build_outputs(outputs: Vec<Output>) -> HashMap<String, Vec<File>> {
-    dbg!(&outputs);
-
-    let mut result = HashMap::new();
-
-    let mut current_path = "";
-    let mut current: Vec<String> = Vec::new();
+fn build_outputs(outputs: Vec<Output>) -> HashMap<String, (Vec<File>, usize)> {
+    let mut result: HashMap<String, (Vec<File>, usize)> = HashMap::new();
+    let mut current = String::new();
 
     for output in outputs {
         match output {
-            Output::File(name, size) => (),
-            Output::Directory(name) => (),
+            Output::File(name, size) => {
+                if let Some((r, t)) = result.get_mut(&current) {
+                    r.push(File{name, size});
+                    *t = *t + size;
+                }
+            },
+            Output::Directory(_name) => (),
             Output::Command(cmd) => match cmd {
                 Command::CdRoot => {
-                    current.clear();
-                    current.push("/".to_string());
-                    result.insert(current.join("+"), vec![]); // Use entry
-                    ()
+                    current = "/".to_owned();
+                    result.insert(current.clone(), (vec![], 0));
                 },
                 Command::CdParent => {
-                    current.pop();
-                    ()
+                    if &current != "/" {
+                        let mut parts = current.split_terminator('/').collect::<Vec<_>>();
+                        parts.pop();
+                        current = parts.join("/");
+                        if current.is_empty() {
+                            current = "/".to_owned();
+                        }
+                    }
                 },
                 Command::CdChild(dir) => {
-                    // current.push_back(dir.clone());
-                    // // current_path.push_str(&dir);
-                    // // current_path.push('/');
-                    // let mut tmp = String::from(current_path);
-                    // tmp.push_str(&dir);
-                    // tmp.push('/');
-                    // current_path = tmp.as_str();
-                    // result.insert(current_path.to_string(), vec![]);
-                    current.push(dir);
-                    result.insert(current.join("+"), vec![]); // Use entry
-                    ()
+                    current.push_str(&dir);
+                    current.push_str("/");
+                    result.insert(current.clone(), (vec![], 0));
                 },
             }
         }
@@ -69,7 +66,10 @@ fn main() {
 }
 
 fn part1(data: Vec<Output>) -> usize {
-    dbg!(build_outputs(data));
+    let directories = build_outputs(data);
+    let keys = directories.keys().collect::<Vec<_>>();
+    dbg!(&directories, &keys);
+
     0
 }
 
@@ -107,7 +107,7 @@ fn get_data(file: &str) -> Vec<Output> {
                 Some(Output::Directory(name.to_string()))
             } else if !line.starts_with("$ ls"){
                 let (size, name) = line.split_once(' ').unwrap();
-                Some(Output::File(size.parse::<usize>().unwrap_or_default(), name.to_string()))
+                Some(Output::File(name.to_string(), size.parse::<usize>().unwrap_or_default()))
             } else {
                 None
             }
