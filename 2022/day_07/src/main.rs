@@ -1,71 +1,3 @@
-/*use std::collections::{HashMap, HashSet};
-
-fn main() {
-    let input = include_str!("../input.txt");
-    println!("Part 1: {:?}", navigate(input));
-}
-
-fn cd(i: &str, cur:&mut Vec<String>) {
-    match i {
-        ".." => { cur.pop(); },
-        "/" => { cur.clear(); },
-        _ => {   cur.push(i.to_string()); }
-    };
-}
-
-fn dir_size(from: &str, dirs: &HashMap<String, HashSet<(&str, usize)>>, counted: &mut HashSet<String>) -> usize {
-    let mut s = dirs.get(from).unwrap().iter().filter_map(|&(f, size)| {
-        let full_path = [from, f].join("");
-        let n = (!counted.contains(&full_path)).then(|| size);
-        counted.insert(full_path);
-        n
-    }).sum();
-
-    dirs.keys()
-        .filter(|l| l.starts_with(from))
-        .filter(|&p| p != from)
-        .for_each(|d| s += dir_size(d, dirs, counted));
-    s
-}
-
-
-fn navigate(s: &str) -> (usize, usize) {
-    let mut dir = vec![];
-    let mut dirs: HashMap<String, HashSet<(&str, usize)>> = HashMap::new();
-
-    for line in s.lines() {
-        if line.starts_with("$") {
-            let splits: Vec<_> = line.split_whitespace().collect();
-            match splits[1] {
-                "ls" => (),
-                "cd" => cd(splits[2], &mut dir),
-                _ => panic!()
-            };
-        } else {
-            let current_dir = dir.join("/");
-            if !dirs.contains_key(&current_dir) {
-                dirs.insert(current_dir.clone(), HashSet::new());
-            }
-
-            if !line.starts_with("dir") {
-                let (fsize, fname) =  line.split_once(' ').unwrap();
-                let fsize = fsize.parse().unwrap();
-                dirs.get_mut(&current_dir).unwrap().insert((fname, fsize));
-            }
-        }
-    }
-
-    dbg!(&dirs);
-    
-    let sizes: Vec<_> = dirs.keys()
-        .map(|k| dir_size(k, &dirs, &mut HashSet::new()) )
-        .collect();
-
-    let delta = 30_000_000 + sizes.iter().max().unwrap() - 70_000_000;
-    (sizes.iter().filter(|&&n| n <= 100_000).sum(),
-        *sizes.iter().filter(|&&n| n >= delta).min().unwrap())
-}*/
-
 use std::{fs, collections::{BTreeMap}};
 
 #[derive(Debug)]
@@ -114,53 +46,59 @@ fn build_outputs(outputs: Vec<Output>) -> BTreeMap<String, usize> {
         }
     }
 
-    result
+    let keys = result.keys().collect::<Vec<_>>();
+    let mut directories = BTreeMap::new();
+    for (name, _size) in result.iter() {
+        let mut sum = 0;
+        for sd in keys.iter() {
+            if sd.starts_with(name) {
+                let size_sub = result.get(*sd).unwrap();
+                sum += size_sub;
+            }
+        }
+        directories.insert(name.clone(), sum);
+    }
+
+    directories
 }
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data("input.txt")));
-    // println!("Part 2 result: {}", part2(get_data("input.txt")));
+    println!("Part 2 result: {}", part2(get_data("input.txt")));
 }
 
 fn part1(data: Vec<Output>) -> usize {
     let directories = build_outputs(data);
-    let keys = directories.keys().collect::<Vec<_>>();
 
-    let mut result = 0;
-    for (name, _size) in directories.iter() {
-        let mut sum = 0;
-
-        // Find sub directories
-        for sd in keys.iter() {
-            if sd.starts_with(name) {
-                let size_sub = directories.get(*sd).unwrap();
-                sum += size_sub;
-            }
-        }
-
-        if sum <= 100_000 {
-            result += sum;
-        }
-    }
-
-    result
+    directories.iter()
+        .map(|(_, size)| *size)
+        .filter(|n| *n <= 100_000)
+        .sum()
 }
 
-// fn part2(data: Vec<Output>) -> usize {
-//     0
-// }
+fn part2(data: Vec<Output>) -> usize {
+    let directories = build_outputs(data);
+    let max_size = directories.get("/").unwrap();
+    let delta = 30_000_000 - (70_000_000 - max_size);
+    
+    directories.iter()
+        .map(|(_, size)| *size)
+        .filter(|s| *s >= delta)
+        .min()
+        .unwrap_or_default()
+}
 
 #[test]
 fn test_part1() {
-    assert_eq!(95437, part1(get_data("test.txt")));
-    assert_eq!(1325919, part1(get_data("input.txt")));
+    assert_eq!(95_437, part1(get_data("test.txt")));
+    assert_eq!(1_325_919, part1(get_data("input.txt")));
 }
 
-// #[test]
-// fn test_part2() {
-//     assert_eq!(0, part2(get_data("test.txt")));
-//     // assert_eq!(0, part2(get_data("input.txt")));
-// }
+#[test]
+fn test_part2() {
+    assert_eq!(24_933_642, part2(get_data("test.txt")));
+    assert_eq!(2_050_735, part2(get_data("input.txt")));
+}
 
 fn get_data(file: &str) -> Vec<Output> {
     fs::read_to_string(file)
