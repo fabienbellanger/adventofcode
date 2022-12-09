@@ -13,9 +13,7 @@ fn part1(data: Vec<Vec<usize>>) -> usize {
 }
 
 fn part2(data: Vec<Vec<usize>>) -> usize {
-    let mut elves: Vec<usize> = data.iter()
-        .map(|elf| elf.iter().sum::<usize>())
-        .collect();
+    let mut elves: Vec<usize> = data.iter().map(|elf| elf.iter().sum::<usize>()).collect();
     elves.sort_unstable();
     elves.iter().rev().take(3).sum()
 }
@@ -33,14 +31,16 @@ fn test_part2() {
 }
 
 fn get_data(file: &str) -> Vec<Vec<usize>> {
-    let parts = fs::read_to_string(file)
-        .expect("Cannot read the file input.txt");
+    let parts = fs::read_to_string(file).expect("Cannot read the file input.txt");
 
     parts
         .trim()
         .split("\n\n")
-        .map(|part| part.trim().split('\n')
-            .map(|line| line.parse::<usize>().unwrap_or_default())
-            .collect::<Vec<usize>>())
+        .map(|part| {
+            part.trim()
+                .split('\n')
+                .map(|line| line.parse::<usize>().unwrap_or_default())
+                .collect::<Vec<usize>>()
+        })
         .collect()
 }

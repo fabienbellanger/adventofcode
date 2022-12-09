@@ -9,4 +9,4 @@ My [adventofcode.com](https://adventofcode.com/2022) solutions
 - [x] Day 05: Rust
 - [x] Day 06: Rust
 - [x] Day 07: Rust
-- [ ] Day 08: Rust
+- [x] Day 08: Rust

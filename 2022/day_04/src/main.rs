@@ -11,8 +11,7 @@ fn main() {
 fn part1(data: Vec<Pair>) -> usize {
     data.iter()
         .filter(|(s1, s2)| {
-            s1.start() <= s2.start() && s1.end() >= s2.end() || 
-            s2.start() <= s1.start() && s2.end() >= s1.end()
+            s1.start() <= s2.start() && s1.end() >= s2.end() || s2.start() <= s1.start() && s2.end() >= s1.end()
         })
         .count()
 }
@@ -20,10 +19,10 @@ fn part1(data: Vec<Pair>) -> usize {
 fn part2(data: Vec<Pair>) -> usize {
     data.iter()
         .filter(|(s1, s2)| {
-            s2.start() >= s1.start() && s2.start() <= s1.end() || 
-            s2.end() >= s1.start() && s2.end() <= s1.end() ||
-            s1.start() >= s2.start() && s1.start() <= s2.end() || 
-            s1.end() >= s2.start() && s1.end() <= s2.end()
+            s2.start() >= s1.start() && s2.start() <= s1.end()
+                || s2.end() >= s1.start() && s2.end() <= s1.end()
+                || s1.start() >= s2.start() && s1.start() <= s2.end()
+                || s1.end() >= s2.start() && s1.end() <= s2.end()
         })
         .count()
 }

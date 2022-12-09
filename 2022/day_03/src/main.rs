@@ -27,7 +27,7 @@ fn part1(data: Vec<Vec<char>>) -> usize {
                 }
             }
 
-            convert_char(res)            
+            convert_char(res)
         })
         .sum::<usize>()
 }

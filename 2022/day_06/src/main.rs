@@ -11,7 +11,7 @@ fn process(data: &str, n: usize) -> usize {
     for (i, c) in data.chars().enumerate() {
         if tmp.len() < n {
             if let Some(j) = tmp.iter().position(|&e| e == c) {
-                tmp = tmp.drain(j+1..).collect();
+                tmp = tmp.drain(j + 1..).collect();
             }
             tmp.push_back(c);
             continue;
