@@ -75,7 +75,7 @@ fn get_data(file: &str) -> Expedition {
     // Stacks
     // ------
     let stacks_number = stacks_parts
-        .split('\n')
+        .lines()
         .rev()
         .take(1)
         .map(|l| {
@@ -89,10 +89,10 @@ fn get_data(file: &str) -> Expedition {
         .unwrap_or_default() as usize;
 
     let mut stacks: Vec<Stack> = vec![vec![]; stacks_number];
-    stacks_parts.split('\n').rev().skip(1).for_each(|line| {
+    stacks_parts.lines().rev().skip(1).for_each(|line| {
         let list: Vec<char> = line.chars().collect();
         for (i, stack) in stacks.iter_mut().enumerate().take(stacks_number) {
-            let j: usize = i * (3 + 1) + 1;
+            let j: usize = i * 4 + 1;
             if let Some(c) = list.get(j) {
                 if *c != ' ' {
                     stack.push(*c);
