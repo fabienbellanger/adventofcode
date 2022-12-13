@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, cmp::{Ordering}};
 
 fn main() {
     println!("Part 1 result: {}", part1(input()));
@@ -9,17 +9,21 @@ fn process(data: &str, n: usize) -> usize {
     let mut tmp: VecDeque<char> = VecDeque::with_capacity(n);
     let mut idx = 0;
     for (i, c) in data.chars().enumerate() {
-        if tmp.len() < n {
-            if let Some(j) = tmp.iter().position(|&e| e == c) {
-                tmp = tmp.drain(j + 1..).collect();
+        match tmp.len().cmp(&n) {
+            Ordering::Less => {
+                if let Some(j) = tmp.iter().position(|&e| e == c) {
+                    tmp = tmp.drain(j + 1..).collect();
+                }
+                tmp.push_back(c);
+                continue;
+            },
+            Ordering::Equal => {
+                idx = i;
+                break;
+            },
+            Ordering::Greater => {
+                break;
             }
-            tmp.push_back(c);
-            continue;
-        } else if tmp.len() == n {
-            idx = i;
-            break;
-        } else {
-            break;
         }
     }
 

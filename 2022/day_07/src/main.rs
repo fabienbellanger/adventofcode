@@ -8,9 +8,9 @@ enum Output {
 
 #[derive(Debug)]
 enum Command {
-    CdRoot,
-    CdParent,
-    CdChild(String),
+    Root,
+    Parent,
+    Child(String),
 }
 
 fn build_outputs(outputs: Vec<Output>) -> BTreeMap<String, usize> {
@@ -21,15 +21,15 @@ fn build_outputs(outputs: Vec<Output>) -> BTreeMap<String, usize> {
         match output {
             Output::File(_name, size) => {
                 if let Some(s) = result.get_mut(&current) {
-                    *s = *s + size;
+                    *s += size;
                 }
             }
             Output::Command(cmd) => match cmd {
-                Command::CdRoot => {
+                Command::Root => {
                     current = "/".to_owned();
                     result.insert(current.clone(), 0);
                 }
-                Command::CdParent => {
+                Command::Parent => {
                     if &current != "/" {
                         let mut parts = current.split_terminator('/').collect::<Vec<_>>();
                         parts.pop();
@@ -37,9 +37,9 @@ fn build_outputs(outputs: Vec<Output>) -> BTreeMap<String, usize> {
                         current.push('/');
                     }
                 }
-                Command::CdChild(dir) => {
+                Command::Child(dir) => {
                     current.push_str(&dir);
-                    current.push_str("/");
+                    current.push('/');
                     result.insert(current.clone(), 0);
                 }
             },
@@ -111,9 +111,9 @@ fn get_data(file: &str) -> Vec<Output> {
             if line.starts_with("$ cd ") {
                 let (_, name) = line.split_once("$ cd ").unwrap();
                 Some(Output::Command(match name {
-                    "/" => Command::CdRoot,
-                    ".." => Command::CdParent,
-                    _ => Command::CdChild(name.to_string()),
+                    "/" => Command::Root,
+                    ".." => Command::Parent,
+                    _ => Command::Child(name.to_string()),
                 }))
             } else if line.starts_with("dir ") {
                 None

@@ -41,7 +41,7 @@ fn part1(moves: Vec<Move>) -> usize {
     let mut head = Point { x: 0, y: 0 };
     let mut tail = Point { x: 0, y: 0 };
     let mut visited: HashSet<Point> = HashSet::new();
-    visited.insert(tail.clone());
+    visited.insert(tail);
 
     for step in moves {
         for _ in 0..step.value {
@@ -80,7 +80,7 @@ fn part1(moves: Vec<Move>) -> usize {
                     }
                 }
 
-                visited.insert(tail.clone());
+                visited.insert(tail);
             }
         }
     }
