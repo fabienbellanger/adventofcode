@@ -14,7 +14,7 @@ struct Move {
     value: usize,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 struct Point {
     x: isize,
     y: isize,
@@ -26,13 +26,15 @@ impl Display for Point {
     }
 }
 
+impl Point {
+    fn near(&self, p: &Self) -> bool {
+        self.x.abs_diff(p.x) <= 1 && self.y.abs_diff(p.y) <= 1
+    }
+}
+
 fn main() {
     println!("Part 1 result: {}", part1(get_data("input.txt")));
     println!("Part 2 result: {}", part2(get_data("input.txt")));
-}
-
-fn is_tail_touching(head: &Point, tail: &Point) -> bool {
-    tail.x.abs_diff(head.x) <= 1 && tail.y.abs_diff(head.y) <= 1
 }
 
 fn part1(moves: Vec<Move>) -> usize {
@@ -50,7 +52,7 @@ fn part1(moves: Vec<Move>) -> usize {
                 Direction::Down => head.y += 1,
             }
 
-            if !is_tail_touching(&head, &tail) {
+            if !tail.near(&head) {
                 match step.direction {
                     Direction::Right => {
                         tail = Point {
@@ -87,7 +89,15 @@ fn part1(moves: Vec<Move>) -> usize {
 }
 
 fn part2(moves: Vec<Move>) -> usize {
-    0
+    let mut rope = [Point { x: 0, y: 0 }; 10];
+    let mut visited: HashSet<Point> = HashSet::new();
+    visited.insert(Point { x: 0, y: 0 });
+
+    for step in moves {
+        for _ in 0..step.value {}
+    }
+
+    visited.len()
 }
 
 #[test]
