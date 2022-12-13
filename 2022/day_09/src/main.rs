@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fs};
+use std::{collections::HashSet, fmt::Display, fs};
 
 #[derive(Debug)]
 enum Direction {
@@ -18,6 +18,12 @@ struct Move {
 struct Point {
     x: isize,
     y: isize,
+}
+
+impl Display for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
 }
 
 fn main() {
