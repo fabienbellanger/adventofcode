@@ -32,155 +32,66 @@ impl Point {
     }
 }
 
-fn main() {
-    println!("Part 1 result: {}", part1(get_data("input.txt")));
-    println!("Part 2 result: {}", part2(get_data("input.txt")));
-}
-
-fn part1(moves: Vec<Move>) -> usize {
-    let mut head = Point { x: 0, y: 0 };
-    let mut tail = Point { x: 0, y: 0 };
-    let mut visited: HashSet<Point> = HashSet::new();
-    visited.insert(tail);
-
-    for step in moves {
-        for _ in 0..step.value {
-            match step.direction {
-                Direction::Right => head.x += 1,
-                Direction::Upper => head.y -= 1,
-                Direction::Left => head.x -= 1,
-                Direction::Down => head.y += 1,
-            }
-
-            if !tail.near(&head) {
-                match step.direction {
-                    Direction::Right => {
-                        tail = Point {
-                            x: head.x - 1,
-                            y: head.y,
-                        }
-                    }
-                    Direction::Upper => {
-                        tail = Point {
-                            x: head.x,
-                            y: head.y + 1,
-                        }
-                    }
-                    Direction::Left => {
-                        tail = Point {
-                            x: head.x + 1,
-                            y: head.y,
-                        }
-                    }
-                    Direction::Down => {
-                        tail = Point {
-                            x: head.x,
-                            y: head.y - 1,
-                        }
-                    }
-                }
-
-                visited.insert(tail);
-            }
-        }
+fn clamp(value: isize, min: isize, max: isize) -> isize {
+    if value > max {
+        return max;
     }
 
-    visited.len()
+    if value < min {
+        return min;
+    }
+
+    value
 }
 
-fn part2(moves: Vec<Move>) -> usize {
-    const N: usize = 10;
-    let mut rope = [Point { x: 0, y: 0 }; N];
+fn process(moves: Vec<Move>, n: usize) -> usize {
+    let mut rope = vec![Point { x: 0, y: 0 }; n];
     let mut visited: HashSet<Point> = HashSet::new();
-    visited.insert(Point { x: 0, y: 0 });
 
     for step in moves {
-        println!("------------------ {:?} ------------------", step.direction);
         for _ in 0..step.value {
-            println!("==================");
-
-            // Head
             match step.direction {
                 Direction::Right => rope[0].x += 1,
                 Direction::Upper => rope[0].y -= 1,
                 Direction::Left => rope[0].x -= 1,
                 Direction::Down => rope[0].y += 1,
             }
-            println!("[0] : {}", rope[0]);
 
-            // First movement
-            let mut movement = Point { x: 0, y: 0 };
-            if !rope[1].near(&rope[0]) {
-                match step.direction {
-                    Direction::Right => {
-                        rope[1] = Point {
-                            x: rope[0].x - 1,
-                            y: rope[0].y,
-                        }
-                    }
-                    Direction::Upper => {
-                        rope[1] = Point {
-                            x: rope[0].x,
-                            y: rope[0].y + 1,
-                        }
-                    }
-                    Direction::Left => {
-                        rope[1] = Point {
-                            x: rope[0].x + 1,
-                            y: rope[0].y,
-                        }
-                    }
-                    Direction::Down => {
-                        rope[1] = Point {
-                            x: rope[0].x,
-                            y: rope[0].y - 1,
-                        }
-                    }
-                }
-            }
+            for i in 1..n {
+                let p = &mut rope[i - 1..=i];
 
-            for i in 1..N {
-                if !rope[i].near(&rope[i - 1]) {
-                    match step.direction {
-                        Direction::Right => {
-                            rope[i] = Point {
-                                x: rope[i - 1].x - 1,
-                                y: rope[i - 1].y,
-                            }
-                        }
-                        Direction::Upper => {
-                            rope[i] = Point {
-                                x: rope[i - 1].x,
-                                y: rope[i - 1].y + 1,
-                            }
-                        }
-                        Direction::Left => {
-                            rope[i] = Point {
-                                x: rope[i - 1].x + 1,
-                                y: rope[i - 1].y,
-                            }
-                        }
-                        Direction::Down => {
-                            rope[i] = Point {
-                                x: rope[i - 1].x,
-                                y: rope[i - 1].y - 1,
-                            }
-                        }
-                    }
+                let head = p[0];
+                let mut tail = &mut p[1];
 
-                    if i == N - 1 {
-                        visited.insert(rope[i]);
-                    }
+                if tail.near(&head) {
+                    continue;
                 }
 
-                println!("[{i}] : {}", rope[i]);
+                let diff_x = clamp(head.x - tail.x, -1, 1);
+                let diff_y = clamp(head.y - tail.y, -1, 1);
+
+                tail.x += diff_x;
+                tail.y += diff_y;
             }
+
+            visited.insert(rope.last().unwrap().clone());
         }
     }
 
-    println!("visited={:?}", visited);
-
     visited.len()
+}
+
+fn main() {
+    println!("Part 1 result: {}", part1(get_data("input.txt")));
+    println!("Part 2 result: {}", part2(get_data("input.txt")));
+}
+
+fn part1(moves: Vec<Move>) -> usize {
+    process(moves, 2)
+}
+
+fn part2(moves: Vec<Move>) -> usize {
+    process(moves, 10)
 }
 
 #[test]
@@ -192,8 +103,8 @@ fn test_part1() {
 #[test]
 fn test_part2() {
     assert_eq!(1, part2(get_data("test.txt")));
-    // assert_eq!(36, part2(get_data("test2.txt")));
-    // assert_eq!(0, part2(get_data("input.txt")));
+    assert_eq!(36, part2(get_data("test2.txt")));
+    assert_eq!(2445, part2(get_data("input.txt")));
 }
 
 fn get_data(file: &str) -> Vec<Move> {
