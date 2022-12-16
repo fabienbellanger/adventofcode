@@ -36,7 +36,7 @@ fn test_part1() {
 #[test]
 fn test_part2() {
     assert_eq!(4, part2(get_data("test.txt")));
-    assert_eq!(0, part2(get_data("input.txt")));
+    assert_eq!(859, part2(get_data("input.txt")));
 }
 
 fn get_data(file: &str) -> Vec<Pair> {

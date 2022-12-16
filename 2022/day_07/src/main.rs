@@ -70,11 +70,7 @@ fn main() {
 fn part1(data: Vec<Output>) -> usize {
     let directories = build_outputs(data);
 
-    directories
-        .iter()
-        .map(|(_, size)| *size)
-        .filter(|n| *n <= 100_000)
-        .sum()
+    directories.values().copied().filter(|n| *n <= 100_000).sum()
 }
 
 fn part2(data: Vec<Output>) -> usize {
@@ -83,8 +79,8 @@ fn part2(data: Vec<Output>) -> usize {
     let delta = 30_000_000 - (70_000_000 - max_size);
 
     directories
-        .iter()
-        .map(|(_, size)| *size)
+        .values()
+        .copied()
         .filter(|s| *s >= delta)
         .min()
         .unwrap_or_default()

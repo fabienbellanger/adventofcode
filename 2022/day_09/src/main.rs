@@ -74,7 +74,7 @@ fn process(moves: Vec<Move>, n: usize) -> usize {
                 tail.y += diff_y;
             }
 
-            visited.insert(rope.last().unwrap().clone());
+            visited.insert(*rope.last().unwrap());
         }
     }
 
