@@ -11,4 +11,19 @@ My [adventofcode.com](https://adventofcode.com/2022) solutions
 - [x] Day 07: Rust
 - [x] Day 08: Rust
 - [x] Day 09: Rust (help part 2)
-- [ ] Day 10: Rust
+- [x] Day 10: Rust
+- [ ] Day 11: Rust
+- [ ] Day 12: Rust
+- [ ] Day 13: Rust
+- [ ] Day 14: Rust
+- [ ] Day 15: Rust
+- [ ] Day 16: Rust
+- [ ] Day 17: Rust
+- [ ] Day 18: Rust
+- [ ] Day 19: Rust
+- [ ] Day 20: Rust
+- [ ] Day 21: Rust
+- [ ] Day 22: Rust
+- [ ] Day 23: Rust
+- [ ] Day 24: Rust
+- [ ] Day 25: Rust

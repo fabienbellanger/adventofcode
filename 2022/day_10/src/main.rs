@@ -10,7 +10,7 @@ enum Instruction {
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data("input.txt")));
-    println!("Part 2 result: {}", part2(get_data("input.txt")));
+    println!("Part 2 result: \n{}", part2(get_data("input.txt")));
 }
 
 fn part1(data: Vec<Instruction>) -> isize {
@@ -36,8 +36,53 @@ fn part1(data: Vec<Instruction>) -> isize {
     result
 }
 
-fn part2(data: Vec<Instruction>) -> isize {
-    0
+fn part2(data: Vec<Instruction>) -> String {
+    let mut register = 1;
+    let mut cycles = 0;
+
+    let mut crt = vec!['.'; 240];
+    crt[0] = '#';
+    crt[1] = '#';
+    crt[2] = '#';
+
+    for i in data {
+        if cycles >= 239 {
+            break;
+        }
+        cycles += 1;
+
+        if cycles % 40 == register as usize
+            || cycles % 40 == (register - 1) as usize
+            || cycles % 40 == (register + 1) as usize
+        {
+            crt[cycles] = '#';
+        } else {
+            crt[cycles] = '.';
+        }
+
+        if let Instruction::Addx(v) = i {
+            cycles += 1;
+            register += v;
+
+            if cycles % 40 == register as usize
+                || cycles % 40 == (register - 1) as usize
+                || cycles % 40 == (register + 1) as usize
+            {
+                crt[cycles] = '#';
+            } else {
+                crt[cycles] = '.';
+            }
+        }
+    }
+
+    let mut s = String::new();
+    for (i, c) in crt.into_iter().enumerate() {
+        if i != 0 && i % 40 == 0 {
+            s.push('\n');
+        }
+        s.push(c);
+    }
+    s
 }
 
 #[test]
@@ -48,8 +93,17 @@ fn test_part1() {
 
 #[test]
 fn test_part2() {
-    assert_eq!(0, part2(get_data("test.txt")));
-    // assert_eq!(0, part2(get_data("input.txt")));
+    assert_eq!(
+        "##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######....."
+            .to_owned(),
+        part2(get_data("test.txt"))
+    );
+    // assert_eq!("".to_owned(), part2(get_data("input.txt")));
 }
 
 fn get_data(file: &str) -> Vec<Instruction> {
