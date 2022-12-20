@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, cmp::{Ordering}};
+use std::{cmp::Ordering, collections::VecDeque};
 
 fn main() {
     println!("Part 1 result: {}", part1(input()));
@@ -16,11 +16,11 @@ fn process(data: &str, n: usize) -> usize {
                 }
                 tmp.push_back(c);
                 continue;
-            },
+            }
             Ordering::Equal => {
                 idx = i;
                 break;
-            },
+            }
             Ordering::Greater => {
                 break;
             }

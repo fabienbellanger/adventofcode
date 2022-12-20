@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, fs};
+use std::{cmp, fs};
 
 #[derive(Debug)]
 enum Operation {
@@ -16,38 +16,70 @@ struct Test {
 
 #[derive(Debug)]
 struct Monkey {
-    items: VecDeque<usize>,
+    items: Vec<usize>,
     op: Operation,
     test: Test,
 }
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data("input.txt")));
-    // println!("Part 2 result: {}", part2(get_data("input.txt")));
+    println!("Part 2 result: {}", part2(get_data("input.txt")));
 }
 
 fn part1(data: Vec<Monkey>) -> usize {
     let mut inspected = vec![0; data.len()];
-    let mut monkeys_items = data.iter().map(|m| m.items.clone()).collect::<Vec<VecDeque<usize>>>();
+    let mut monkeys_items = data.iter().map(|m| m.items.clone()).collect::<Vec<Vec<usize>>>();
 
     for _ in 0..20 {
         for (j, monkey) in data.iter().enumerate() {
-            for item in monkeys_items[j].clone() {
-                let new = match monkey.op {
-                    Operation::Add(v) => (item + v) / 3,
-                    Operation::Mul(v) => (item * v) / 3,
-                    Operation::Square => (item * item) / 3,
-                };
+            for mut item in monkeys_items[j].clone() {
+                item = match monkey.op {
+                    Operation::Add(v) => item + v,
+                    Operation::Mul(v) => item * v,
+                    Operation::Square => item * item,
+                } / 3;
 
-                match new % monkey.test.value == 0 {
-                    true => monkeys_items[monkey.test.ok].push_back(new),
-                    false => monkeys_items[monkey.test.ko].push_back(new),
+                match item % monkey.test.value == 0 {
+                    true => monkeys_items[monkey.test.ok].push(item),
+                    false => monkeys_items[monkey.test.ko].push(item),
                 }
-
-                monkeys_items[j].pop_front();
 
                 inspected[j] += 1;
             }
+
+            monkeys_items[j].clear();
+        }
+    }
+
+    inspected.sort_by_key(|&c| cmp::Reverse(c));
+    inspected.into_iter().take(2).product::<usize>()
+}
+
+fn part2(data: Vec<Monkey>) -> usize {
+    let mut inspected = vec![0; data.len()];
+    let mut monkeys_items = data.iter().map(|m| m.items.clone()).collect::<Vec<Vec<usize>>>();
+
+    let divisor_product = data.iter().map(|m| m.test.value).product::<usize>();
+
+    for _ in 0..10_000 {
+        for (j, monkey) in data.iter().enumerate() {
+            for mut item in monkeys_items[j].clone() {
+                item %= divisor_product;
+                item = match monkey.op {
+                    Operation::Add(v) => item + v,
+                    Operation::Mul(v) => item * v,
+                    Operation::Square => item * item,
+                };
+
+                match item % monkey.test.value == 0 {
+                    true => monkeys_items[monkey.test.ok].push(item),
+                    false => monkeys_items[monkey.test.ko].push(item),
+                }
+
+                inspected[j] += 1;
+            }
+
+            monkeys_items[j].clear();
         }
     }
 
@@ -55,21 +87,17 @@ fn part1(data: Vec<Monkey>) -> usize {
     inspected.into_iter().rev().take(2).product::<usize>()
 }
 
-// fn part2(data: Vec<Monkey>) -> usize {
-//     0
-// }
-
 #[test]
 fn test_part1() {
     assert_eq!(10_605, part1(get_data("test.txt")));
     assert_eq!(57838, part1(get_data("input.txt")));
 }
 
-// #[test]
-// fn test_part2() {
-//     assert_eq!(0, part2(get_data("test.txt")));
-//     // assert_eq!(0, part2(get_data("input.txt")));
-// }
+#[test]
+fn test_part2() {
+    assert_eq!(2713310158, part2(get_data("test.txt")));
+    assert_eq!(15050382231, part2(get_data("input.txt")));
+}
 
 fn get_data(file: &str) -> Vec<Monkey> {
     fs::read_to_string(file)
