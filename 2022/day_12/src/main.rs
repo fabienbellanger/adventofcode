@@ -18,6 +18,7 @@ impl Cell {
     }
 }
 
+#[derive(Debug)]
 struct CellRecord {
     prev: Option<GridCoord>,
 }
@@ -63,9 +64,7 @@ impl Grid {
             num_steps: 0,
         }
     }
-}
-
-impl Grid {
+    
     fn in_bounds(&self, coord: GridCoord) -> bool {
         coord.x < self.width && coord.y < self.height
     }
@@ -77,7 +76,7 @@ impl Grid {
         Some(&self.data[coord.y * self.width + coord.x])
     }
 
-    fn cell_mut(&mut self, coord: GridCoord) -> Option<&mut Cell> {
+    fn _cell_mut(&mut self, coord: GridCoord) -> Option<&mut Cell> {
         if !self.in_bounds(coord) {
             return None;
         }
@@ -100,6 +99,44 @@ impl Grid {
             })
         })
     }
+
+    pub fn step(&mut self) {
+        if self.current.is_empty() {
+            // Find start coordinate
+            let mut start_coord: Option<GridCoord> = None;
+            for y in 0..self.height {
+                for x in 0..self.width {
+                    let coord: GridCoord = (x, y).into();
+                    if let Cell::Start = self.cell(coord).unwrap() {
+                        start_coord = Some(coord);
+                        break;
+                    }
+                }
+            }
+            let start_coord = start_coord.unwrap();
+            self.current.insert(start_coord);
+            self.visited.insert(start_coord, CellRecord { prev: None });
+            return;
+        }
+
+        let current = std::mem::take(&mut self.current);
+        let mut next = HashSet::new();
+        let mut visited = std::mem::take(&mut self.visited);
+
+        for curr in current {
+            for ncoord in self.walkable_neighbors(curr) {
+                if visited.contains_key(&ncoord) {
+                    // Don't visit it again!
+                    continue;
+                }
+                visited.insert(ncoord, CellRecord { prev: Some(curr) });
+                next.insert(ncoord);
+            }
+        }
+        self.current = next;
+        self.visited = visited;
+        self.num_steps += 1;
+    }
 }
 
 impl fmt::Debug for Grid {
@@ -117,6 +154,7 @@ impl fmt::Debug for Grid {
             }
             writeln!(f)?;
         }
+        writeln!(f, "Visited: {} ", self.num_steps)?;
         Ok(())
     }
 }
@@ -138,8 +176,13 @@ fn main() {
     // println!("Part 2 result: {}", part2(get_data("input.txt")));
 }
 
-fn part1(data: Grid) -> usize {
+fn part1(mut data: Grid) -> usize {
     println!("{data:?}");
+    data.step();
+    data.step();
+    data.step();
+    println!("{data:?}");
+    dbg!(&data.visited, &data.current);
 
     1
 }
