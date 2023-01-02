@@ -195,7 +195,7 @@ fn part1(mut data: Grid) -> usize {
 fn part2(mut data: Grid) -> usize {
     let cells_number = data.width * data.height;
 
-    'l: while !(data.visited.len() == cells_number) {
+    'l: while data.visited.len() != cells_number {
         for coord in &data.current {
             if data.cell(*coord).unwrap().elevation() == 0 {
                 break 'l;
