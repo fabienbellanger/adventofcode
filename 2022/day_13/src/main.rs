@@ -17,8 +17,8 @@ impl fmt::Debug for Node {
     }
 }
 
-impl std::cmp::PartialOrd for Node {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+impl PartialOrd for Node {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self, other) {
             (Node::Number(a), Node::Number(b)) => a.partial_cmp(b),
             (left, right) => {
@@ -43,7 +43,7 @@ impl std::cmp::PartialOrd for Node {
     }
 }
 
-impl std::cmp::Ord for Node {
+impl Ord for Node {
     fn cmp(&self, other: &Self) -> Ordering {
         self.partial_cmp(other).unwrap()
     }
