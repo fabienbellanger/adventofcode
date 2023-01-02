@@ -51,7 +51,7 @@ impl std::cmp::Ord for Node {
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data("input.txt")));
-    // println!("Part 2 result: {}", part2(get_data("input.txt")));
+    println!("Part 2 result: {}", part2(get_data("input.txt")));
 }
 
 fn part1(data: Vec<(Node, Node)>) -> usize {
@@ -64,9 +64,27 @@ fn part1(data: Vec<(Node, Node)>) -> usize {
         .sum()
 }
 
-// fn part2(data: Vec<(Node, Node)>) -> usize {
-//     0
-// }
+fn part2(data: Vec<(Node, Node)>) -> usize {
+    let divider_two = Node::List(vec![Node::List(vec![Node::Number(2)])]);
+    let divider_six = Node::List(vec![Node::List(vec![Node::Number(6)])]);
+
+    let mut packets = data.into_iter().flat_map(|(l, r)| vec![l, r]).collect::<Vec<_>>();
+    packets.push(divider_two.clone());
+    packets.push(divider_six.clone());
+    packets.sort_unstable();
+
+    packets
+        .into_iter()
+        .enumerate()
+        .filter_map(|(i, p)| {
+            if p == divider_two || p == divider_six {
+                Some(i + 1)
+            } else {
+                None
+            }
+        })
+        .product()
+}
 
 #[test]
 fn test_part1() {
@@ -74,11 +92,11 @@ fn test_part1() {
     assert_eq!(6101, part1(get_data("input.txt")));
 }
 
-// #[test]
-// fn test_part2() {
-//     assert_eq!(0, part2(get_data("test.txt")));
-//     // assert_eq!(0, part2(get_data("input.txt")));
-// }
+#[test]
+fn test_part2() {
+    assert_eq!(140, part2(get_data("test.txt")));
+    assert_eq!(21909, part2(get_data("input.txt")));
+}
 
 fn get_data(file: &str) -> Vec<(Node, Node)> {
     fs::read_to_string(file)
