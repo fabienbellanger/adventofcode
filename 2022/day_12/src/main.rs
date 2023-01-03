@@ -139,8 +139,6 @@ impl Grid {
         self.current = next;
         self.visited = visited;
         self.num_steps += 1;
-
-        dbg!(&self.num_steps);
     }
 }
 
