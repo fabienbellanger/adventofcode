@@ -1,5 +1,7 @@
+use std::cmp::{max, min};
 use std::collections::HashSet;
 use std::fmt::Formatter;
+use std::ops::RangeInclusive;
 use std::{fmt, fs};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
@@ -36,7 +38,7 @@ impl Point {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Record {
     sensor: Point,
     beacon: Point,
@@ -72,7 +74,7 @@ impl Record {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Grid {
     records: Vec<Record>,
 }
@@ -87,7 +89,7 @@ impl Grid {
 
 fn main() {
     println!("Part 1 result: {}", part1(get_data("day_15/input.txt"), 2_000_000));
-    println!("Part 2 result: {}", part2(get_data("day_15/input.txt"), 0, 4_000_000));
+    println!("Part 2 result: {}", part2(get_data("day_15/input.txt"), 0..=4_000_000));
 }
 
 fn part1(grid: Grid, line: isize) -> usize {
@@ -132,7 +134,42 @@ fn part1(grid: Grid, line: isize) -> usize {
     possible_positions - beacon_positions
 }
 
-fn part2(grid: Grid, start: isize, end: isize) -> usize {
+fn part2(grid: Grid, range: RangeInclusive<isize>) -> isize {
+    let records = grid.records;
+    let range_start = range.start();
+    let range_end = range.end();
+
+    for i in range.clone() {
+        // Ranges list of valid sensors
+        let mut ranges = vec![];
+        for record in &records {
+            let distance_line = i.abs_diff(record.sensor.y);
+
+            if distance_line > record.distance {
+                continue;
+            }
+
+            let length = record.distance - distance_line;
+            let start = max(*range_start, record.sensor.x - length as isize);
+            let end = min(*range_end, record.sensor.x + length as isize);
+            ranges.push(start..=end);
+        }
+
+        if !ranges.is_empty() {
+            ranges.sort_by_key(|r| *r.start());
+
+            // Find a "space" between 2 ranges
+            let mut current_range = ranges.first().unwrap().clone();
+            for range in ranges.into_iter().skip(1) {
+                if *range.start() >= current_range.end() + 2 {
+                    return Point::from((range.start() - 1, i)).tuning_frequency();
+                } else if range.end() > current_range.end() {
+                    current_range = *current_range.start()..=*range.end();
+                }
+            }
+        }
+    }
+
     0
 }
 
@@ -152,8 +189,8 @@ fn test_part1() {
 
 #[test]
 fn test_part2() {
-    assert_eq!(56000011, part2(get_data("test.txt"), 0, 20));
-    // assert_eq!(0, part2(get_data("input.txt")));
+    assert_eq!(56000011, part2(get_data("test.txt"), 0..=20));
+    assert_eq!(0, part2(get_data("input.txt"), 0..=4_000_000));
 }
 
 fn get_data(file: &str) -> Grid {

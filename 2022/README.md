@@ -16,7 +16,7 @@ My [adventofcode.com](https://adventofcode.com/2022) solutions
 - [x] Day 12: Rust (help part 1 & 2)
 - [x] Day 13: Rust (help part 1)
 - [x] Day 14: Rust
-- [ ] Day 15: Rust
+- [x] Day 15: Rust (help part 1 & 2)
 - [ ] Day 16: Rust
 - [ ] Day 17: Rust
 - [ ] Day 18: Rust
