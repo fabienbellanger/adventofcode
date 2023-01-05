@@ -138,8 +138,9 @@ fn part2(grid: Grid, range: RangeInclusive<isize>) -> isize {
     let records = grid.records;
     let range_start = range.start();
     let range_end = range.end();
+    let mut point = Point::from((0, 0));
 
-    for i in range.clone() {
+    'loop_range: for i in range.clone() {
         // Ranges list of valid sensors
         let mut ranges = vec![];
         for record in &records {
@@ -162,7 +163,8 @@ fn part2(grid: Grid, range: RangeInclusive<isize>) -> isize {
             let mut current_range = ranges.first().unwrap().clone();
             for range in ranges.into_iter().skip(1) {
                 if *range.start() >= current_range.end() + 2 {
-                    return Point::from((range.start() - 1, i)).tuning_frequency();
+                    point = Point::from((range.start() - 1, i));
+                    break 'loop_range;
                 } else if range.end() > current_range.end() {
                     current_range = *current_range.start()..=*range.end();
                 }
@@ -170,7 +172,7 @@ fn part2(grid: Grid, range: RangeInclusive<isize>) -> isize {
         }
     }
 
-    0
+    point.tuning_frequency()
 }
 
 #[test]
@@ -190,7 +192,7 @@ fn test_part1() {
 #[test]
 fn test_part2() {
     assert_eq!(56000011, part2(get_data("test.txt"), 0..=20));
-    assert_eq!(0, part2(get_data("input.txt"), 0..=4_000_000));
+    assert_eq!(10852583132904, part2(get_data("input.txt"), 0..=4_000_000));
 }
 
 fn get_data(file: &str) -> Grid {
