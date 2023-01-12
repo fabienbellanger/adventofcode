@@ -1,10 +1,13 @@
-use std::fs;
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    fs,
+};
 
 #[derive(Debug)]
 struct Valve {
     name: String,
     flow: usize,
-    list: Vec<String>,
+    links: Vec<String>,
 }
 
 impl Valve {
@@ -16,22 +19,82 @@ impl Valve {
         } else {
             data.split_once("; tunnel leads to valve ").unwrap()
         };
-        let list = list.split(", ").into_iter().map(|v| v.to_string()).collect();
+        let links = list.split(", ").into_iter().map(|v| v.to_string()).collect();
 
         Self {
             name: name.to_owned(),
             flow: flow.parse().unwrap(),
-            list,
+            links,
         }
     }
 }
 
-fn part1(data: Vec<Valve>) -> usize {
-    dbg!(&data);
+type Path = Vec<(String, String)>;
+
+#[derive(Debug)]
+struct Network {
+    valves: HashMap<String, Valve>,
+}
+
+impl Network {
+    fn parse(data: &str) -> Self {
+        let valves = data
+            .trim()
+            .lines()
+            .map(|line| {
+                let v = Valve::parse(line);
+                (v.name.clone(), v)
+            })
+            .collect();
+
+        Self { valves }
+    }
+
+    // From AA:
+    // We can get to HH using path [(AA, DD), (DD, EE), (EE, FF), (FF, GG), (GG, HH)]
+    // We can get to AA using path []
+    // We can get to BB using path [(AA, BB)]
+    // etc.
+    fn connections(&self, start: String) -> HashMap<String, Path> {
+        let mut current: HashMap<String, Path> = HashMap::new();
+        current.insert(start, vec![]);
+
+        let mut connections = current.clone();
+
+        while !current.is_empty() {
+            let mut next: HashMap<String, Path> = HashMap::new();
+
+            for (name, path) in current {
+                for link in self.valves[&name].links.iter().cloned() {
+                    if let Entry::Vacant(e) = connections.entry(link.clone()) {
+                        let connection_path: Path = path
+                            .iter()
+                            .cloned()
+                            .chain(std::iter::once((name.clone(), link.clone())))
+                            .collect();
+                        e.insert(connection_path.clone());
+                        next.insert(link, connection_path);
+                    }
+                }
+            }
+
+            current = next;
+        }
+
+        connections
+    }
+}
+
+fn part1(network: Network) -> usize {
+    println!("From AA:");
+    for (name, path) in network.connections("AA".to_owned()) {
+        println!("We can get to {name} using path {path:?}");
+    }
+
     0
 }
 
-fn part2(_data: Vec<Valve>) -> usize {
+fn part2(_network: Network) -> usize {
     0
 }
 
@@ -52,13 +115,8 @@ fn test_part2() {
     // assert_eq!(0, part2(get_data("input.txt")));
 }
 
-fn get_data(file: &str) -> Vec<Valve> {
-    let valves = fs::read_to_string(file)
-        .expect("Cannot read the file input.txt")
-        .trim()
-        .lines()
-        .map(Valve::parse)
-        .collect();
+fn get_data(file: &str) -> Network {
+    let data = fs::read_to_string(file).expect("Cannot read the file input.txt");
 
-    valves
+    Network::parse(&data)
 }
