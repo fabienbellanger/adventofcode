@@ -149,10 +149,33 @@ impl State<'_> {
         next.open_valves.insert(mv.target.clone());
         next
     }
+
+    fn find_best_moves(&self) -> (Self, Vec<Move>) {
+        let mut best_moves = vec![];
+        let mut best_state = self.clone();
+        let mut best_pressure = 0;
+
+        let mut moves = self.moves();
+        moves.sort_by_key(|mv| mv.reward);
+        moves.reverse();
+
+        for mv in moves {
+            let next = self.apply(&mv);
+            let (next, mut next_moves) = next.find_best_moves();
+            next_moves.push(mv);
+            if next.pressure > best_pressure {
+                best_pressure = next.pressure;
+                best_moves = next_moves;
+                best_state = next;
+            }
+        }
+
+        (best_state, best_moves)
+    }
 }
 
 fn part1(network: Network) -> usize {
-    let mut state = State {
+    let state = State {
         net: &network,
         position: "AA".to_owned(),
         max_turns: 30,
@@ -161,19 +184,10 @@ fn part1(network: Network) -> usize {
         pressure: 0,
     };
 
-    loop {
-        let moves = state.moves();
-        if moves.is_empty() {
-            break;
-        }
-        let mv = moves.iter().max_by_key(|mv| mv.reward).expect("moves is not empty");
-        println!("Turn {}, at {:?}, doing {mv:?}", state.turn + 1, state.position);
-        state = state.apply(mv);
-    }
+    let (state, moves) = state.find_best_moves();
+    println!("moves = {:?}, final pressure = {}", moves, state.pressure);
 
-    println!("Final pressure: {}", state.pressure);
-
-    0
+    state.pressure
 }
 
 fn part2(_network: Network) -> usize {
@@ -181,9 +195,9 @@ fn part2(_network: Network) -> usize {
 }
 
 fn main() {
-    let data = get_data("day_16/test.txt");
-    println!("Part 1 result: {}", part1(data));
-    // println!("Part 2 result: {}", part2(get_data("day_16/input.txt")));
+    let data = get_data("day_16/input.txt");
+    println!("Part 1 result: {}", part1(data.clone()));
+    println!("Part 2 result: {}", part2(data));
 }
 
 #[test]
