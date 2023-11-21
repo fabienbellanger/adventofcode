@@ -1,9 +1,10 @@
+use std::collections::HashSet;
 use std::{
     collections::{hash_map::Entry, HashMap},
     fs,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Valve {
     name: String,
     flow: usize,
@@ -31,7 +32,7 @@ impl Valve {
 
 type Path = Vec<(String, String)>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Network {
     valves: HashMap<String, Valve>,
 }
@@ -50,11 +51,6 @@ impl Network {
         Self { valves }
     }
 
-    // From AA:
-    // We can get to HH using path [(AA, DD), (DD, EE), (EE, FF), (FF, GG), (GG, HH)]
-    // We can get to AA using path []
-    // We can get to BB using path [(AA, BB)]
-    // etc.
     fn connections(&self, start: String) -> HashMap<String, Path> {
         let mut current: HashMap<String, Path> = HashMap::new();
         current.insert(start, vec![]);
@@ -85,11 +81,97 @@ impl Network {
     }
 }
 
-fn part1(network: Network) -> usize {
-    println!("From AA:");
-    for (name, path) in network.connections("AA".to_owned()) {
-        println!("We can get to {name} using path {path:?}");
+#[derive(Debug, Clone)]
+struct Move {
+    reward: usize,
+    target: String,
+    path: Path,
+}
+
+impl Move {
+    fn cost(&self) -> usize {
+        let travel_turn = self.path.len();
+        let open_turn = 1;
+        travel_turn + open_turn
     }
+}
+
+#[derive(Clone)]
+struct State<'a> {
+    net: &'a Network,
+    position: String,
+    max_turns: usize,
+    turn: usize,
+    pressure: usize,
+    open_valves: HashSet<String>,
+}
+
+impl State<'_> {
+    fn turns_left(&self) -> usize {
+        self.max_turns - self.turn
+    }
+
+    /// Compute all moves and expected reward (pressure contributed till time
+    /// runs out if we travel to it and open it now)
+    fn moves(&self) -> Vec<Move> {
+        self.net
+            .connections(self.position.clone())
+            .into_iter()
+            .filter_map(|(name, path)| {
+                if self.open_valves.contains(&name) {
+                    return None;
+                }
+
+                let flow = self.net.valves[&name].flow;
+                if flow == 0 {
+                    return None;
+                }
+
+                let travel_turns = path.len();
+                let open_turns = 1;
+                let turns_spent_open = self.turns_left().checked_sub(travel_turns + open_turns)?;
+                let reward = flow * turns_spent_open;
+                Some(Move {
+                    reward,
+                    target: name,
+                    path,
+                })
+            })
+            .collect()
+    }
+
+    /// Apply a given move
+    fn apply(&self, mv: &Move) -> Self {
+        let mut next = self.clone();
+        next.position = mv.target.clone();
+        next.turn += mv.cost();
+        next.pressure += mv.reward;
+        next.open_valves.insert(mv.target.clone());
+        next
+    }
+}
+
+fn part1(network: Network) -> usize {
+    let mut state = State {
+        net: &network,
+        position: "AA".to_owned(),
+        max_turns: 30,
+        turn: 0,
+        open_valves: Default::default(),
+        pressure: 0,
+    };
+
+    loop {
+        let moves = state.moves();
+        if moves.is_empty() {
+            break;
+        }
+        let mv = moves.iter().max_by_key(|mv| mv.reward).expect("moves is not empty");
+        println!("Turn {}, at {:?}, doing {mv:?}", state.turn + 1, state.position);
+        state = state.apply(mv);
+    }
+
+    println!("Final pressure: {}", state.pressure);
 
     0
 }
@@ -99,8 +181,9 @@ fn part2(_network: Network) -> usize {
 }
 
 fn main() {
-    println!("Part 1 result: {}", part1(get_data("day_16/input.txt")));
-    println!("Part 2 result: {}", part2(get_data("day_16/input.txt")));
+    let data = get_data("day_16/test.txt");
+    println!("Part 1 result: {}", part1(data));
+    // println!("Part 2 result: {}", part2(get_data("day_16/input.txt")));
 }
 
 #[test]
