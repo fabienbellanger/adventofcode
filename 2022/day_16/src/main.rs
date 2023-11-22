@@ -184,8 +184,8 @@ fn part1(network: Network) -> usize {
         pressure: 0,
     };
 
-    let (state, moves) = state.find_best_moves();
-    println!("moves = {:?}, final pressure = {}", moves, state.pressure);
+    let (state, _moves) = state.find_best_moves();
+    // println!("moves = {:?}, final pressure = {}", moves, state.pressure);
 
     state.pressure
 }
@@ -203,12 +203,12 @@ fn main() {
 #[test]
 fn test_part1() {
     assert_eq!(1651, part1(get_data("test.txt")));
-    // assert_eq!(0, part1(get_data("input.txt")));
+    assert_eq!(2029, part1(get_data("input.txt")));
 }
 
 #[test]
 fn test_part2() {
-    // assert_eq!(0, part2(get_data("test.txt")));
+    assert_eq!(1707, part2(get_data("test.txt")));
     // assert_eq!(0, part2(get_data("input.txt")));
 }
 
