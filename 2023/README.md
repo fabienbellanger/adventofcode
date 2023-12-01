@@ -2,7 +2,16 @@
 
 My [adventofcode.com](https://adventofcode.com/2023) solutions
 
-- [ ] Day 01: Rust (`cargo run --bin day_01`)
+# Commands
+From workspace directory:
+```shell
+cargo clippy -- -Dwarnings
+cargo test --bin day_x
+cargo run --bin day_x
+```
+
+# Progression
+- [x] Day 01: Rust
 - [ ] Day 02: Rust
 - [ ] Day 03: Rust
 - [ ] Day 04: Rust

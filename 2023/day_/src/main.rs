@@ -1,36 +1,36 @@
-use std::fs;
+#![allow(unused_variables)]
+use utils::data::file_to_vec_string;
+
+const INPUT: &str = "day_x/input.txt";
 
 fn main() {
-    println!("Part 1 result: {}", part1(get_data("input.txt")));
-    // println!("Part 2 result: {}", part2(get_data("input.txt")));
+    println!("Part 1 result: {}", part1(file_to_vec_string(INPUT)));
+    println!("Part 2 result: {}", part2(file_to_vec_string(INPUT)));
 }
 
-fn part1(data: Vec<String>) -> usize {
-    dbg!(&data);
-    0
+fn part1(data: Vec<String>) -> u32 {
+    todo!()
 }
 
-// fn part2(data: Vec<String>) -> usize {
-//     0
-// }
-
-#[test]
-fn test_part1() {
-    assert_eq!(0, part1(get_data("test.txt")));
-    // assert_eq!(0, part1(get_data("input.txt")));
+fn part2(data: Vec<String>) -> u32 {
+    todo!()
 }
 
-// #[test]
-// fn test_part2() {
-//     assert_eq!(0, part2(get_data("test.txt")));
-//     // assert_eq!(0, part2(get_data("input.txt")));
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-fn get_data(file: &str) -> Vec<String> {
-    fs::read_to_string(file)
-        .expect("Cannot read the file input.txt")
-        .trim()
-        .lines()
-        .map(|line| line.to_string())
-        .collect()
+    const TEST: &str = "day_x/test.txt";
+
+    #[test]
+    fn test_part1() {
+        assert_eq!(0, part1(file_to_vec_string(TEST)));
+        // assert_eq!(0, part1(file_to_vec_string(INPUT)));
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(0, part2(file_to_vec_string(TEST)));
+        // assert_eq!(0, part2(file_to_vec_string(INPUT)));
+    }
 }
