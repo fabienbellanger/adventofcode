@@ -2,6 +2,7 @@
 use utils::data::file_to_vec_string;
 
 const INPUT: &str = "day_x/input.txt";
+const TEST: &str = "day_x/test.txt";
 
 fn main() {
     println!("Part 1 result: {}", part1(file_to_vec_string(INPUT)));
