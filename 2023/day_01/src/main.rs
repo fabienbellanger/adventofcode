@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use utils::data::file_to_vec_string;
 
-const INPUT: &str = "day_01/input.txt";
+const INPUT: &str = "input.txt";
 
 fn main() {
     println!("Part 1 result: {}", part1(file_to_vec_string(INPUT)));
@@ -64,8 +64,8 @@ fn part2(data: Vec<String>) -> u32 {
 mod tests {
     use super::*;
 
-    const TEST_1: &str = "day_01/test1.txt";
-    const TEST_2: &str = "day_01/test2.txt";
+    const TEST_1: &str = "test1.txt";
+    const TEST_2: &str = "test2.txt";
 
     #[test]
     fn test_part1() {

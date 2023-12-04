@@ -3,11 +3,11 @@
 My [adventofcode.com](https://adventofcode.com/2023) solutions
 
 # Commands
-From workspace directory:
+From day's directory:
 ```shell
 cargo clippy -- -Dwarnings
-cargo test --bin day_x
-cargo run --bin day_x
+cargo test
+cargo run
 ```
 
 # Progression

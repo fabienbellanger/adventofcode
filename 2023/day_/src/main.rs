@@ -1,8 +1,7 @@
 #![allow(unused_variables)]
 use utils::data::file_to_vec_string;
 
-const INPUT: &str = "day_x/input.txt";
-const TEST: &str = "day_x/test.txt";
+const INPUT: &str = "input.txt";
 
 fn main() {
     println!("Part 1 result: {}", part1(file_to_vec_string(INPUT)));
@@ -21,7 +20,7 @@ fn part2(data: Vec<String>) -> u32 {
 mod tests {
     use super::*;
 
-    const TEST: &str = "day_x/test.txt";
+    const TEST: &str = "test1.txt";
 
     #[test]
     fn test_part1() {
