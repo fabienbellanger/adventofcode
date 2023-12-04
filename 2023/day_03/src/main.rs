@@ -5,15 +5,26 @@ use utils::data::file_to_vec_string;
 
 const INPUT: &str = "input.txt";
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 struct Point {
-    x: usize,
-    y: usize,
+    x: isize,
+    y: isize,
 }
 
 impl Point {
-    fn new(x: usize, y: usize) -> Self {
+    fn new(x: isize, y: isize) -> Self {
         Self { x, y }
+    }
+
+    fn neighbors(&self) -> HashSet<Point> {
+        let directions = [(-1, 1), (0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)];
+
+        directions
+            .iter()
+            .map(|(d_x, d_y)| (*d_x + self.x, *d_y + self.y))
+            .filter(|(x, y)| *x >= 0 && *y >= 0)
+            .map(|(x, y)| Point::new(x, y))
+            .collect()
     }
 }
 
@@ -26,16 +37,38 @@ struct PartNumber {
 }
 
 impl PartNumber {
-    // TODO
+    // TODO: Add tests
+    fn neighbors(&self) -> HashSet<Point> {
+        let mut list = HashSet::new();
+
+        for x in 0..self.value.len() {
+            let p = Point::new(self.origin.x + x as isize, self.origin.y);
+            let neighbors = p.neighbors();
+            list.extend(neighbors.into_iter());
+        }
+
+        list
+    }
 }
 
 fn main() {
-    println!("Part 1 result: {}", part1(file_to_vec_string(INPUT)));
+    println!("Part 1 result: {}", part1(parse_input(INPUT)));
     println!("Part 2 result: {}", part2(file_to_vec_string(INPUT)));
 }
 
-fn part1(data: Vec<String>) -> u32 {
-    todo!()
+fn part1(data: (Vec<PartNumber>, Symbols)) -> usize {
+    let part_numbers = data.0;
+    let symbols = data.1;
+
+    part_numbers
+        .iter()
+        .filter_map(
+            |part_number| match part_number.neighbors().iter().any(|point| symbols.contains(point)) {
+                false => None,
+                true => Some(part_number.value.parse::<usize>().unwrap_or_default()),
+            },
+        )
+        .sum()
 }
 
 fn part2(data: Vec<String>) -> u32 {
@@ -43,12 +76,38 @@ fn part2(data: Vec<String>) -> u32 {
 }
 
 fn parse_input(file: &str) -> (Vec<PartNumber>, Symbols) {
-    let lines = fs::read_to_string(file)
-        .expect("Cannot read the file input.txt")
-        .trim()
-        .lines();
+    let lines = fs::read_to_string(file).expect("Cannot read the file input.txt");
 
-    todo!()
+    let mut part_numbers = vec![];
+    let mut symbols = HashSet::new();
+
+    for (y, line) in lines.trim().lines().enumerate() {
+        let mut current_number = String::new();
+        let mut current_origin = Point::new(0, y as isize);
+
+        for (x, c) in line.chars().enumerate() {
+            if c.is_ascii_digit() {
+                if current_number.is_empty() {
+                    current_origin.x = x as isize;
+                }
+                current_number.push(c);
+            } else if !current_number.is_empty() {
+                let part_number = PartNumber {
+                    value: current_number.clone(),
+                    origin: current_origin.clone(),
+                };
+                part_numbers.push(part_number);
+
+                current_number.clear();
+            }
+
+            if !c.is_ascii_alphanumeric() && c != '.' {
+                symbols.insert(Point::new(x as isize, y as isize));
+            }
+        }
+    }
+
+    (part_numbers, symbols)
 }
 
 #[cfg(test)]
@@ -59,13 +118,42 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(4361, part1(file_to_vec_string(TEST)));
-        // assert_eq!(0, part1(file_to_vec_string(INPUT)));
+        assert_eq!(4361, part1(parse_input(TEST)));
+        // assert_eq!(0, part1(parse_input(INPUT)));
     }
 
     #[test]
     fn test_part2() {
         // assert_eq!(0, part2(file_to_vec_string(TEST)));
         // assert_eq!(0, part2(file_to_vec_string(INPUT)));
+    }
+
+    #[test]
+    fn test_point_neighbors() {
+        let p = Point::new(0, 0);
+        assert_eq!(p.neighbors().len(), 3);
+
+        let p = Point::new(0, 1);
+        assert_eq!(p.neighbors().len(), 5);
+
+        let p = Point::new(1, 1);
+        assert_eq!(p.neighbors().len(), 8);
+    }
+
+    #[test]
+    fn test_part_number_neighbors() {
+        let part_number = PartNumber {
+            value: "467".to_string(),
+            origin: Point::new(0, 0),
+        };
+        let expected = HashSet::from([
+            Point::new(3, 0),
+            Point::new(0, 1),
+            Point::new(1, 1),
+            Point::new(2, 1),
+            Point::new(3, 1),
+        ]);
+
+        assert_eq!(part_number.neighbors(), expected);
     }
 }
