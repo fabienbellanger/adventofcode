@@ -1,6 +1,6 @@
 #![allow(unused_variables)]
 use std::collections::HashSet;
-use std::fs;
+use std::{fmt, fs};
 use utils::data::file_to_vec_string;
 
 const INPUT: &str = "input.txt";
@@ -9,6 +9,12 @@ const INPUT: &str = "input.txt";
 struct Point {
     x: isize,
     y: isize,
+}
+
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(f, "({},{})", self.x, self.y)
+    }
 }
 
 impl Point {
@@ -34,6 +40,12 @@ type Symbols = HashSet<Point>;
 struct PartNumber {
     value: String,
     origin: Point,
+}
+
+impl fmt::Display for PartNumber {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        write!(f, "{} from {})", self.value, self.origin)
+    }
 }
 
 impl PartNumber {
@@ -62,13 +74,14 @@ fn part1(data: (Vec<PartNumber>, Symbols)) -> usize {
 
     part_numbers
         .iter()
+        .inspect(|s| println!("{s}"))
         .filter_map(
             |part_number| match part_number.neighbors().iter().any(|point| symbols.contains(point)) {
                 false => None,
                 true => Some(part_number.value.parse::<usize>().unwrap_or_default()),
             },
         )
-        //.inspect(|s| println!("{s}"))
+        .inspect(|s| println!("  => {s}"))
         .sum()
 }
 
