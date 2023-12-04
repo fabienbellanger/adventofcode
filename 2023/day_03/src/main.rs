@@ -68,6 +68,7 @@ fn part1(data: (Vec<PartNumber>, Symbols)) -> usize {
                 true => Some(part_number.value.parse::<usize>().unwrap_or_default()),
             },
         )
+        //.inspect(|s| println!("{s}"))
         .sum()
 }
 
@@ -101,7 +102,7 @@ fn parse_input(file: &str) -> (Vec<PartNumber>, Symbols) {
                 current_number.clear();
             }
 
-            if !c.is_ascii_alphanumeric() && c != '.' {
+            if !c.is_ascii_digit() && c != '.' {
                 symbols.insert(Point::new(x as isize, y as isize));
             }
         }
