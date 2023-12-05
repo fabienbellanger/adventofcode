@@ -20,7 +20,7 @@ fn part2(data: Vec<String>) -> u32 {
 mod tests {
     use super::*;
 
-    const TEST: &str = "test1.txt";
+    const TEST: &str = "test.txt";
 
     #[test]
     fn test_part1() {
