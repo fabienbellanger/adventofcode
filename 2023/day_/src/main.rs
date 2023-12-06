@@ -8,11 +8,11 @@ fn main() {
     println!("Part 2 result: {}", part2(file_to_vec_string(INPUT)));
 }
 
-fn part1(data: Vec<String>) -> u32 {
+fn part1(data: Vec<String>) -> usize {
     todo!()
 }
 
-fn part2(data: Vec<String>) -> u32 {
+fn part2(data: Vec<String>) -> usize {
     todo!()
 }
 
