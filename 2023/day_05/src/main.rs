@@ -1,4 +1,5 @@
 #![allow(unused_variables)]
+use rayon::prelude::*;
 use std::collections::{HashMap, VecDeque};
 use std::fs;
 use std::ops::Range;
@@ -83,8 +84,8 @@ fn part1(data: Almanac) -> usize {
 fn part2(data: Almanac) -> usize {
     let seeds = data.seeds;
     let categories = data.categories;
-    let mut min = usize::MAX;
     let sorted_categories = Category::sorted_vec();
+    let mut min = usize::MAX;
 
     let seeds_ranges = seeds
         .chunks(2)
@@ -92,26 +93,31 @@ fn part2(data: Almanac) -> usize {
         .collect::<Vec<_>>();
 
     for seed_range in seeds_ranges.into_iter() {
-        for seed in seed_range {
-            let mut number = seed;
+        let min_tmp = seed_range
+            .into_par_iter()
+            .map(|seed| {
+                let mut number = seed;
+                for category in &sorted_categories {
+                    let conversions = categories.get(category).unwrap();
+                    let mut delta = 0isize;
 
-            for category in &sorted_categories {
-                let conversions = categories.get(category).unwrap();
-                let mut delta = 0isize;
-
-                for conversion in conversions {
-                    if conversion.source_range.contains(&number) {
-                        delta = conversion.destination_start as isize - conversion.source_range.start as isize;
-                        break;
+                    for conversion in conversions {
+                        if conversion.source_range.contains(&number) {
+                            delta = conversion.destination_start as isize - conversion.source_range.start as isize;
+                            break;
+                        }
                     }
+
+                    number = (number as isize + delta) as usize;
                 }
 
-                number = (number as isize + delta) as usize;
-            }
+                number
+            })
+            .min()
+            .unwrap();
 
-            if number < min {
-                min = number;
-            }
+        if min_tmp < min {
+            min = min_tmp;
         }
     }
 
