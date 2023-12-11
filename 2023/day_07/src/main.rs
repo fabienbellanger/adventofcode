@@ -37,94 +37,75 @@ struct Hand {
     bid: usize,
     hand_type: HandType,
     others: Vec<u8>,
+    cards: Vec<u8>,
 }
 
 impl fmt::Display for Hand {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "bid={:<6} | type={:<24}\t| others={:?}",
-            self.bid, self.hand_type, self.others
+            "bid={:<6} | type={:<24}\t| others={:?} | cards={:?}",
+            self.bid, self.hand_type, self.others, self.cards
         )
     }
 }
 
 impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match (self.hand_type.clone(), self.others.clone()) {
+        match (self.hand_type.clone(), self.cards.clone()) {
             // FiveKind
-            (HandType::FiveKind(c), _) => match (other.hand_type.clone(), other.others.clone()) {
-                (HandType::FiveKind(d), _) => Some(c.cmp(&d)),
+            (HandType::FiveKind(_), o1) => match (other.hand_type.clone(), other.cards.clone()) {
+                (HandType::FiveKind(_), o2) => Some(o1.cmp(&o2)),
                 _ => Some(Ordering::Greater),
             },
 
             // FourKind
-            (HandType::FourKind(c), o1) => match (other.hand_type.clone(), other.others.clone()) {
+            (HandType::FourKind(c), o1) => match (other.hand_type.clone(), other.cards.clone()) {
                 (HandType::FiveKind(_), _) => Some(Ordering::Less),
-                (HandType::FourKind(d), o2) => match c.cmp(&d) {
-                    Ordering::Equal => Some(o1.cmp(&o2)),
-                    ord => Some(ord),
-                },
+                (HandType::FourKind(d), o2) => Some(o1.cmp(&o2)),
                 _ => Some(Ordering::Greater),
             },
 
             // Full
-            (HandType::Full(c1, c2), o1) => match (other.hand_type.clone(), other.others.clone()) {
+            (HandType::Full(c1, c2), o1) => match (other.hand_type.clone(), other.cards.clone()) {
                 (HandType::FiveKind(_), _) | (HandType::FourKind(_), _) => Some(Ordering::Less),
-                (HandType::Full(d1, d2), o2) => match c1.cmp(&d1) {
-                    Ordering::Equal => match c1.cmp(&d1) {
-                        Ordering::Equal => Some(o1.cmp(&o2)),
-                        ord => Some(ord),
-                    },
-                    ord => Some(ord),
-                },
+                (HandType::Full(d1, d2), o2) => Some(o1.cmp(&o2)),
                 _ => Some(Ordering::Greater),
             },
 
             // ThreeKind
-            (HandType::ThreeKind(c), o1) => match (other.hand_type.clone(), other.others.clone()) {
+            (HandType::ThreeKind(c), o1) => match (other.hand_type.clone(), other.cards.clone()) {
                 (HandType::FiveKind(_), _) | (HandType::FourKind(_), _) | (HandType::Full(_, _), _) => {
                     Some(Ordering::Less)
                 }
-                (HandType::ThreeKind(d), o2) => match c.cmp(&d) {
-                    Ordering::Equal => Some(o1.cmp(&o2)),
-                    ord => Some(ord),
-                },
+                (HandType::ThreeKind(d), o2) => Some(o1.cmp(&o2)),
                 _ => Some(Ordering::Greater),
             },
 
             // TwoPair
-            (HandType::TwoPair(c1, c2), o1) => match (other.hand_type.clone(), other.others.clone()) {
+            (HandType::TwoPair(c1, c2), o1) => match (other.hand_type.clone(), other.cards.clone()) {
                 (HandType::FiveKind(_), _)
                 | (HandType::FourKind(_), _)
                 | (HandType::Full(_, _), _)
                 | (HandType::ThreeKind(_), _) => Some(Ordering::Less),
-                (HandType::TwoPair(d1, d2), o2) => match c1.cmp(&d1) {
-                    Ordering::Equal => match c1.cmp(&d1) {
-                        Ordering::Equal => Some(o1.cmp(&o2)),
-                        ord => Some(ord),
-                    },
-                    ord => Some(ord),
-                },
+                (HandType::TwoPair(d1, d2), o2) => Some(o1.cmp(&o2)),
                 _ => Some(Ordering::Greater),
             },
 
             // OnePair
-            (HandType::OnePair(c), o1) => match (other.hand_type.clone(), other.others.clone()) {
+            (HandType::OnePair(c), o1) => match (other.hand_type.clone(), other.cards.clone()) {
                 (HandType::FiveKind(_), _)
                 | (HandType::FourKind(_), _)
                 | (HandType::Full(_, _), _)
                 | (HandType::ThreeKind(_), _)
                 | (HandType::TwoPair(_, _), _) => Some(Ordering::Less),
-                (HandType::OnePair(d), o2) => match c.cmp(&d) {
-                    Ordering::Equal => Some(o1.cmp(&o2)),
-                    ord => Some(ord),
-                },
+                (HandType::OnePair(d), o2) => Some(o1.cmp(&o2)),
                 _ => Some(Ordering::Greater),
             },
 
-            (HandType::High, o1) => match (other.hand_type.clone(), other.others.clone()) {
-                (_, o2) => Some(o1.cmp(&o2)),
+            (HandType::High, o1) => match (other.hand_type.clone(), other.cards.clone()) {
+                (HandType::High, o2) => Some(o1.cmp(&o2)),
+                _ => Some(Ordering::Less),
             },
         }
     }
@@ -141,9 +122,16 @@ fn main() {
     println!("Part 2 result: {}", part2(parse_input(INPUT)));
 }
 
+// 251605897 => KO
+// 248083579 => KO
+// 248075265 => KO
+// 251558185 => KO
+// 248774993 => KO
+// 250638685 => ?
+// 248141590 => ?
 fn part1(data: Vec<Hand>) -> usize {
     let mut data = data;
-    data.sort_unstable();
+    data.sort();
 
     for hand in data.iter() {
         println!("{hand}");
@@ -218,6 +206,7 @@ fn parse_input(file: &str) -> Vec<Hand> {
             let (cards, bid) = line.trim().split_once(' ').unwrap();
 
             let mut hand = BTreeMap::new();
+            let mut all_cards = vec![];
             for card in cards.chars() {
                 let value = match card.to_digit(10) {
                     Some(d) => d as u8,
@@ -230,6 +219,8 @@ fn parse_input(file: &str) -> Vec<Hand> {
                         _ => panic!("invalid card"),
                     },
                 };
+
+                all_cards.push(value);
 
                 let entry = hand.entry(value).or_insert(0);
                 *entry += 1;
@@ -247,6 +238,7 @@ fn parse_input(file: &str) -> Vec<Hand> {
             Hand {
                 bid: bid.parse().unwrap_or_default(),
                 hand_type: cards_to_hand_type(hand),
+                cards: all_cards,
                 others,
             }
         })
@@ -261,7 +253,7 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        // assert_eq!(6_440, part1(parse_input(TEST)));
+        assert_eq!(6_440, part1(parse_input(TEST)));
         assert_eq!(0, part1(parse_input(INPUT)));
     }
 
