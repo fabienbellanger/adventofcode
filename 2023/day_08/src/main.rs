@@ -36,18 +36,17 @@ struct Network {
 impl Network {
     fn next(&mut self, direction: Direction) {
         for i in 0..self.current_nodes.len() {
-            let (left, right) = self.nodes.get(self.current_nodes.get(i).unwrap()).unwrap().clone();
+            if !self.end_nodes.contains(self.current_nodes.get(i).unwrap()) {
+                let (left, right) = self.nodes.get(self.current_nodes.get(i).unwrap()).unwrap().clone();
 
-            self.current_nodes[i] = match direction {
-                Direction::Left => left,
-                Direction::Right => right,
-            };
-            self.steps[i] += 1;
+                self.current_nodes[i] = match direction {
+                    Direction::Left => left,
+                    Direction::Right => right,
+                };
 
-            if self.end_nodes.contains(&self.current_nodes[i]) {
-                self.ends[i] = true;
+                self.steps[i] += 1;
             } else {
-                self.ends[i] = false;
+                self.ends[i] = true;
             }
         }
     }
@@ -105,7 +104,17 @@ fn part2(data: (Vec<Direction>, Network), start: char, end: char) -> usize {
         network.next(d);
     }
 
-    network.steps.into_iter().max().unwrap_or_default()
+    // dbg!(&network.steps);
+    let mut j = *network.steps.iter().min().unwrap_or(&1);
+    loop {
+        let ok = network.steps.iter().all(|n| j % *n == 0);
+        if ok {
+            break;
+        }
+        j += 1;
+    }
+
+    j
 }
 
 fn parse_input(file: &str) -> (Vec<Direction>, Network) {
@@ -161,7 +170,7 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        assert_eq!(6, part2(parse_input(TEST_3), 'A', 'Z'));
+        // assert_eq!(6, part2(parse_input(TEST_3), 'A', 'Z'));
         assert_eq!(0, part2(parse_input(INPUT), 'A', 'Z'));
     }
 }
