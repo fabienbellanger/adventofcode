@@ -18,8 +18,8 @@ cargo run
 - [x] Day 05: Rust
 - [x] Day 06: Rust
 - [x] Day 07: Rust
-- [ ] Day 08: Rust
-- [ ] Day 09: Rust
+- [x] Day 08: Rust
+- [x] Day 09: Rust
 - [ ] Day 10: Rust
 - [ ] Day 11: Rust
 - [ ] Day 12: Rust

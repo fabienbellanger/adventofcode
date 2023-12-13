@@ -65,7 +65,7 @@ fn part1(data: (Vec<Direction>, Network), start: &str, end: &str) -> usize {
     network.end_nodes = HashSet::from([end.to_string()]);
 
     for d in data.0.into_iter().cycle() {
-        if network.ends.iter().all(|b| *b == true) {
+        if network.ends.iter().all(|b| *b) {
             break;
         }
         network.next(d);
@@ -97,21 +97,21 @@ fn part2(data: (Vec<Direction>, Network), start: char, end: char) -> usize {
     network.ends = (0..network.current_nodes.len()).map(|_| false).collect();
 
     for d in data.0.into_iter().cycle() {
-        let finished = network.ends.iter().all(|b| *b == true);
+        let finished = network.ends.iter().all(|b| *b);
         if finished {
             break;
         }
         network.next(d);
     }
 
-    // dbg!(&network.steps);
-    let mut j = *network.steps.iter().min().unwrap_or(&1);
+    let max = *network.steps.iter().max().unwrap_or(&1);
+    let mut j = max;
     loop {
         let ok = network.steps.iter().all(|n| j % *n == 0);
         if ok {
             break;
         }
-        j += 1;
+        j += max;
     }
 
     j
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        // assert_eq!(6, part2(parse_input(TEST_3), 'A', 'Z'));
-        assert_eq!(0, part2(parse_input(INPUT), 'A', 'Z'));
+        assert_eq!(6, part2(parse_input(TEST_3), 'A', 'Z'));
+        assert_eq!(13_740_108_158_591, part2(parse_input(INPUT), 'A', 'Z'));
     }
 }
