@@ -1,6 +1,7 @@
 #![allow(unused_variables)]
 use std::collections::{HashMap, HashSet};
-use std::fs;
+use std::fmt::Formatter;
+use std::{fmt, fs};
 
 const INPUT: &str = "input.txt";
 const DIRECTIONS: [Direction; 4] = [Direction::Up, Direction::Down, Direction::Left, Direction::Right];
@@ -35,6 +36,21 @@ enum Tile {
     #[default]
     Ground,
     Start,
+}
+
+impl fmt::Display for Tile {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::NorthSouth => write!(f, "│"),
+            Self::EastWest => write!(f, "─"),
+            Self::NorthEast => write!(f, "┕"),
+            Self::NorthWest => write!(f, "┘"),
+            Self::SouthEast => write!(f, "┌"),
+            Self::SouthWest => write!(f, "┐"),
+            Self::Ground => write!(f, "."),
+            Self::Start => write!(f, "S"),
+        }
+    }
 }
 
 impl TryFrom<char> for Tile {
@@ -117,8 +133,14 @@ struct Grid {
     main_loop: HashSet<Point>,
 }
 
+impl fmt::Display for Grid {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        todo!()
+    }
+}
+
 impl Grid {
-    fn find_loop(&mut self) {
+    fn find_main_loop(&mut self) {
         //
     }
 }
