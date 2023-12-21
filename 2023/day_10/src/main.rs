@@ -25,7 +25,7 @@ impl From<Direction> for (isize, isize) {
     }
 }
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 enum Tile {
     NorthSouth,
     EastWest,
@@ -117,20 +117,33 @@ impl Tile {
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 struct Point {
-    x: usize,
-    y: usize,
+    x: isize,
+    y: isize,
 }
 
 impl Point {
-    fn new(x: usize, y: usize) -> Self {
+    fn new(x: isize, y: isize) -> Self {
         Self { x, y }
+    }
+}
+
+#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
+struct TilePoint {
+    tile: Tile,
+    point: Point,
+}
+
+impl fmt::Display for TilePoint {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {}, {})", self.tile, self.point.x, self.point.y)
     }
 }
 
 #[derive(Debug, Default, Clone)]
 struct Grid {
-    tiles: HashMap<Point, Tile>,
-    main_loop: HashSet<Point>,
+    tiles: HashMap<Point, TilePoint>,
+    main_loop: HashSet<TilePoint>,
+    start: TilePoint,
 }
 
 impl fmt::Display for Grid {
@@ -140,8 +153,76 @@ impl fmt::Display for Grid {
 }
 
 impl Grid {
-    fn find_main_loop(&mut self) {
-        //
+    fn find_tiles_available(&self, current: &TilePoint) -> HashSet<TilePoint> {
+        let mut list = HashSet::new();
+
+        for direction in DIRECTIONS {
+            let (dx, dy) = direction.clone().into();
+            let x = current.point.x + dx;
+            let y = current.point.y + dy;
+
+            if x < 0 || y < 0 {
+                break;
+            }
+
+            if let Some(tile_point) = self.tiles.get(&Point::new(x, y)) {
+                let tiles_available = current.tile.tiles_available(direction);
+
+                for tile in tiles_available {
+                    if tile == tile_point.tile {
+                        list.insert(tile_point.clone());
+                    }
+                }
+            }
+        }
+
+        list
+    }
+
+    fn find_main_loop(
+        &mut self,
+        current: TilePoint,
+        mut result: HashSet<TilePoint>,
+        mut depth: usize,
+    ) -> HashSet<TilePoint> {
+        println!("---------- Start -------------");
+        println!("{depth} : {current}");
+        for r in result.iter() {
+            println!(" - {r}");
+        }
+        println!("------------------------------");
+        if depth == 3 {
+            println!(" =========> DEPTH");
+            return HashSet::new();
+        }
+        depth += 1;
+        let tiles = self.find_tiles_available(&current);
+        println!("---------- tiles -------------");
+        for r in tiles.iter() {
+            println!(" - {r}");
+        }
+        println!("------------------------------");
+
+        if tiles.contains(&current) && current.tile == Tile::Start && result.len() > 1 {
+            // Loop found
+            return result;
+        }
+
+        if tiles.contains(&current) && current.tile != Tile::Start || tiles.is_empty() {
+            println!(" =========> ICI");
+            return HashSet::new();
+        }
+
+        println!("---------- Loop -------------");
+        result.insert(current);
+        let mut loops = Vec::new();
+        for tile in tiles {
+            let lp = self.find_main_loop(tile, result.clone(), depth);
+            loops.push(lp);
+        }
+        println!("--------- End Loop ----------");
+
+        loops[0].clone()
     }
 }
 
@@ -150,8 +231,10 @@ fn main() {
     println!("Part 2 result: {}", part2(parse_input(INPUT)));
 }
 
-fn part1(data: Grid) -> usize {
-    dbg!(data);
+fn part1(mut data: Grid) -> usize {
+    // dbg!(&data);
+
+    dbg!(data.find_main_loop(data.start.clone(), HashSet::new(), 0));
     todo!()
 }
 
@@ -164,21 +247,34 @@ fn parse_input(file: &str) -> Grid {
 
     let mut tiles = HashMap::new();
     let mut main_loop = HashSet::new();
+    let mut start = TilePoint {
+        tile: Tile::Start,
+        point: Point::new(0, 0),
+    };
     for (y, line) in data.trim().lines().enumerate() {
         for (x, c) in line.trim().chars().enumerate() {
             let tile = Tile::try_from(c).unwrap();
-            let point = Point::new(x, y);
+            let point = Point::new(x as isize, y as isize);
 
             if tile != Tile::Ground {
+                let tile_point = TilePoint {
+                    point: point.clone(),
+                    tile: tile.clone(),
+                };
                 if tile == Tile::Start {
-                    main_loop.insert(point.clone());
+                    start = tile_point.clone();
+                    main_loop.insert(start.clone());
                 }
-                tiles.insert(point, tile);
+                tiles.insert(point, tile_point);
             }
         }
     }
 
-    Grid { tiles, main_loop }
+    Grid {
+        tiles,
+        main_loop,
+        start,
+    }
 }
 
 #[cfg(test)]
