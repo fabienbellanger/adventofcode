@@ -1,5 +1,5 @@
 #![allow(unused_variables)]
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::Formatter;
 use std::{fmt, fs};
 
@@ -62,8 +62,8 @@ impl TryFrom<char> for Tile {
             '-' => Ok(Self::EastWest),
             'L' => Ok(Self::NorthEast),
             'J' => Ok(Self::NorthWest),
-            '7' => Ok(Self::SouthEast),
-            'F' => Ok(Self::SouthWest),
+            '7' => Ok(Self::SouthWest),
+            'F' => Ok(Self::SouthEast),
             '.' => Ok(Self::Ground),
             'S' => Ok(Self::Start),
             _ => Err(()),
@@ -76,33 +76,33 @@ impl Tile {
         match self {
             Self::NorthSouth => match direction {
                 Direction::Left | Direction::Right => vec![],
-                Direction::Up => vec![Self::NorthSouth, Self::SouthWest, Self::SouthEast],
-                Direction::Down => vec![Self::NorthSouth, Self::NorthWest, Self::NorthEast],
+                Direction::Up => vec![Self::Start, Self::NorthSouth, Self::SouthWest, Self::SouthEast],
+                Direction::Down => vec![Self::Start, Self::NorthSouth, Self::NorthWest, Self::NorthEast],
             },
             Self::EastWest => match direction {
                 Direction::Up | Direction::Down => vec![],
-                Direction::Left => vec![Self::EastWest, Self::NorthEast, Self::SouthEast],
-                Direction::Right => vec![Self::EastWest, Self::NorthWest, Self::SouthWest],
+                Direction::Left => vec![Self::Start, Self::EastWest, Self::NorthEast, Self::SouthEast],
+                Direction::Right => vec![Self::Start, Self::EastWest, Self::NorthWest, Self::SouthWest],
             },
             Self::NorthEast => match direction {
                 Direction::Left | Direction::Down => vec![],
-                Direction::Up => vec![Self::NorthSouth, Self::SouthWest, Self::SouthEast],
-                Direction::Right => vec![Self::EastWest, Self::NorthWest, Self::SouthWest],
+                Direction::Up => vec![Self::Start, Self::NorthSouth, Self::SouthWest, Self::SouthEast],
+                Direction::Right => vec![Self::Start, Self::EastWest, Self::NorthWest, Self::SouthWest],
             },
             Self::NorthWest => match direction {
                 Direction::Right | Direction::Down => vec![],
-                Direction::Up => vec![Self::NorthSouth, Self::SouthWest, Self::SouthEast],
-                Direction::Left => vec![Self::EastWest, Self::NorthEast, Self::SouthEast],
+                Direction::Up => vec![Self::Start, Self::NorthSouth, Self::SouthWest, Self::SouthEast],
+                Direction::Left => vec![Self::Start, Self::EastWest, Self::NorthEast, Self::SouthEast],
             },
             Self::SouthEast => match direction {
                 Direction::Left | Direction::Up => vec![],
-                Direction::Down => vec![Self::NorthSouth, Self::NorthWest, Self::NorthEast],
-                Direction::Right => vec![Self::EastWest, Self::NorthWest, Self::SouthWest],
+                Direction::Down => vec![Self::Start, Self::NorthSouth, Self::NorthWest, Self::NorthEast],
+                Direction::Right => vec![Self::Start, Self::EastWest, Self::NorthWest, Self::SouthWest],
             },
             Self::SouthWest => match direction {
                 Direction::Right | Direction::Up => vec![],
-                Direction::Down => vec![Self::NorthSouth, Self::NorthWest, Self::NorthEast],
-                Direction::Left => vec![Self::EastWest, Self::NorthEast, Self::SouthEast],
+                Direction::Down => vec![Self::Start, Self::NorthSouth, Self::NorthWest, Self::NorthEast],
+                Direction::Left => vec![Self::Start, Self::EastWest, Self::NorthEast, Self::SouthEast],
             },
             Self::Start => match direction {
                 Direction::Up => vec![Self::NorthSouth, Self::SouthWest, Self::SouthEast],
@@ -162,7 +162,7 @@ impl Grid {
             let y = current.point.y + dy;
 
             if x < 0 || y < 0 {
-                break;
+                continue;
             }
 
             if let Some(tile_point) = self.tiles.get(&Point::new(x, y)) {
@@ -179,50 +179,31 @@ impl Grid {
         list
     }
 
-    fn find_main_loop(
-        &mut self,
-        current: TilePoint,
-        mut result: HashSet<TilePoint>,
-        mut depth: usize,
-    ) -> HashSet<TilePoint> {
-        println!("---------- Start -------------");
-        println!("{depth} : {current}");
-        for r in result.iter() {
-            println!(" - {r}");
-        }
-        println!("------------------------------");
-        if depth == 3 {
-            println!(" =========> DEPTH");
-            return HashSet::new();
-        }
-        depth += 1;
-        let tiles = self.find_tiles_available(&current);
-        println!("---------- tiles -------------");
-        for r in tiles.iter() {
-            println!(" - {r}");
-        }
-        println!("------------------------------");
+    fn find_loop(&mut self, start: TilePoint) {
+        let mut to_visit = VecDeque::new();
+        let mut visited = HashSet::new();
 
-        if tiles.contains(&current) && current.tile == Tile::Start && result.len() > 1 {
-            // Loop found
-            return result;
+        let mut current = start.clone();
+        visited.insert(current.clone());
+
+        loop {
+            let available_tiles = self.find_tiles_available(&current);
+
+            for tile in available_tiles {
+                if !visited.contains(&tile) {
+                    to_visit.push_front(tile);
+                }
+            }
+
+            if let Some(c) = to_visit.pop_front() {
+                current = c;
+                visited.insert(current.clone());
+            } else {
+                break;
+            }
         }
 
-        if tiles.contains(&current) && current.tile != Tile::Start || tiles.is_empty() {
-            println!(" =========> ICI");
-            return HashSet::new();
-        }
-
-        println!("---------- Loop -------------");
-        result.insert(current);
-        let mut loops = Vec::new();
-        for tile in tiles {
-            let lp = self.find_main_loop(tile, result.clone(), depth);
-            loops.push(lp);
-        }
-        println!("--------- End Loop ----------");
-
-        loops[0].clone()
+        self.main_loop = visited;
     }
 }
 
@@ -231,11 +212,9 @@ fn main() {
     println!("Part 2 result: {}", part2(parse_input(INPUT)));
 }
 
-fn part1(mut data: Grid) -> usize {
-    // dbg!(&data);
-
-    dbg!(data.find_main_loop(data.start.clone(), HashSet::new(), 0));
-    todo!()
+fn part1(mut grid: Grid) -> usize {
+    grid.find_loop(grid.start.clone());
+    grid.main_loop.len() / 2
 }
 
 fn part2(data: Grid) -> usize {
@@ -287,8 +266,8 @@ mod tests {
     #[test]
     fn test_part1() {
         assert_eq!(4, part1(parse_input(TEST_1)));
-        // assert_eq!(8, part1(parse_input(TEST_2)));
-        // assert_eq!(0, part1(parse_input(INPUT)));
+        assert_eq!(8, part1(parse_input(TEST_2)));
+        assert_eq!(6_815, part1(parse_input(INPUT)));
     }
 
     #[test]
