@@ -223,6 +223,8 @@ impl Grid {
         }
 
         // s n'est pas OK, il n'est pas idempotent :(
+        // Actuellement : p_first * p_first+1 ... p_last-1 * p_last
+        // Il manque p_first * p_last
         let s: isize = self
             .main_loop
             .windows(2)
