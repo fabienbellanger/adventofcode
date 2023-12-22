@@ -56,13 +56,13 @@ fn process_line(line: Vec<isize>) -> Vec<Vec<isize>> {
     result
 }
 
-fn is_zero(line: &Vec<isize>) -> bool {
+fn is_zero(line: &[isize]) -> bool {
     line.iter().all(|n| *n == 0)
 }
 
 fn parse_input(file: &str) -> Vec<Vec<isize>> {
     fs::read_to_string(file)
-        .expect(&format!("Cannot read the file {file}"))
+        .unwrap_or_else(|_| panic!("Cannot read the file {file}"))
         .trim()
         .lines()
         .map(|line| {

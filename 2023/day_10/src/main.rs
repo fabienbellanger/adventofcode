@@ -4,7 +4,7 @@ use std::fmt::Formatter;
 use std::{fmt, fs};
 
 const INPUT: &str = "input.txt";
-const DIRECTIONS: [Direction; 4] = [Direction::Up, Direction::Down, Direction::Left, Direction::Right];
+const DIRECTIONS: [Direction; 4] = [Direction::Right, Direction::Down, Direction::Left, Direction::Up];
 
 #[derive(Debug, Clone, PartialEq)]
 enum Direction {
@@ -142,7 +142,7 @@ impl fmt::Display for TilePoint {
 #[derive(Debug, Default, Clone)]
 struct Grid {
     tiles: HashMap<Point, TilePoint>,
-    main_loop: HashSet<TilePoint>,
+    main_loop: Vec<TilePoint>,
     start: TilePoint,
 }
 
@@ -179,12 +179,12 @@ impl Grid {
         list
     }
 
-    fn find_loop(&mut self, start: TilePoint) {
+    fn find_main_loop(&mut self, start: TilePoint) {
         let mut to_visit = VecDeque::new();
-        let mut visited = HashSet::new();
+        let mut visited = Vec::new();
 
         let mut current = start.clone();
-        visited.insert(current.clone());
+        visited.push(current.clone());
 
         loop {
             let available_tiles = self.find_tiles_available(&current);
@@ -197,13 +197,41 @@ impl Grid {
 
             if let Some(c) = to_visit.pop_front() {
                 current = c;
-                visited.insert(current.clone());
+                visited.push(current.clone());
             } else {
                 break;
             }
         }
 
         self.main_loop = visited;
+    }
+
+    // Area = enclosed_tiles + boundary_points_count/2 - 1
+    // number_of_enclosed_tiles = loop_area - (boundary_points_count / 2) + 1
+    fn number_of_enclosed_tiles(&self) -> usize {
+        let loop_area = self.loop_area();
+        let boundary_points_count = self.main_loop.len();
+
+        dbg!(loop_area, boundary_points_count);
+
+        loop_area - (boundary_points_count / 2) + 1
+    }
+
+    fn loop_area(&self) -> usize {
+        for t in self.main_loop.iter() {
+            println!("{t}");
+        }
+
+        // s n'est pas OK, il n'est pas idempotent :(
+        let s: isize = self
+            .main_loop
+            .windows(2)
+            .map(|pair| pair[0].point.x * pair[1].point.y - pair[1].point.x * pair[0].point.y)
+            .inspect(|v| println!("{v}"))
+            .sum();
+        dbg!(s);
+
+        s as usize / 2
     }
 }
 
@@ -213,19 +241,35 @@ fn main() {
 }
 
 fn part1(mut grid: Grid) -> usize {
-    grid.find_loop(grid.start.clone());
+    grid.find_main_loop(grid.start.clone());
     grid.main_loop.len() / 2
 }
 
-fn part2(data: Grid) -> usize {
-    todo!()
+/**
+ * Pick's theorem (https://en.wikipedia.org/wiki/Pick%27s_theorem)
+ * loopArea = interiorPointsCount + (boundaryPointsCount / 2) - 1
+ *
+ * Part 2 answer is interiorPointsCount
+ * transforming Pick's formula:
+ * interiorPointsCount = loopArea - (boundaryPointsCount / 2) + 1
+ *
+ * boundaryPointsCount is length of loop (practically part1 answer * 2)
+ *
+ * loopArea can by calculated using Shoelace formula (https://en.wikipedia.org/wiki/Shoelace_formula):
+ * vertices = (x1, y1) (x2, y2) (x3, y3) ...
+ * 2 * loopArea = x1 * y2 - y1 * x2 + x2 * y3 - x3 * y2 + ...
+ * loopArea = result / 2
+ */
+fn part2(mut grid: Grid) -> usize {
+    grid.find_main_loop(grid.start.clone());
+    grid.number_of_enclosed_tiles()
 }
 
 fn parse_input(file: &str) -> Grid {
-    let data = fs::read_to_string(file).expect(&format!("Cannot read the file {file}"));
+    let data = fs::read_to_string(file).unwrap_or_else(|_| panic!("Cannot read the file {file}"));
 
     let mut tiles = HashMap::new();
-    let mut main_loop = HashSet::new();
+    let mut main_loop = Vec::new();
     let mut start = TilePoint {
         tile: Tile::Start,
         point: Point::new(0, 0),
@@ -242,7 +286,7 @@ fn parse_input(file: &str) -> Grid {
                 };
                 if tile == Tile::Start {
                     start = tile_point.clone();
-                    main_loop.insert(start.clone());
+                    main_loop.push(start.clone());
                 }
                 tiles.insert(point, tile_point);
             }
@@ -262,6 +306,9 @@ mod tests {
 
     const TEST_1: &str = "test_1.txt";
     const TEST_2: &str = "test_2.txt";
+    const TEST_3: &str = "test_3.txt";
+    const TEST_4: &str = "test_4.txt";
+    const TEST_5: &str = "test_5.txt";
 
     #[test]
     fn test_part1() {
@@ -272,7 +319,9 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        // assert_eq!(0, part2(parse_input(TEST_1)));
+        // assert_eq!(4, part2(parse_input(TEST_3)));
+        assert_eq!(8, part2(parse_input(TEST_4)));
+        // assert_eq!(10, part2(parse_input(TEST_5)));
         // assert_eq!(0, part2(parse_input(INPUT)));
     }
 }

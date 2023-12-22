@@ -24,13 +24,13 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(0, part1(file_to_vec_string(TEST)));
+        // assert_eq!(0, part1(file_to_vec_string(TEST)));
         // assert_eq!(0, part1(file_to_vec_string(INPUT)));
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(0, part2(file_to_vec_string(TEST)));
+        // assert_eq!(0, part2(file_to_vec_string(TEST)));
         // assert_eq!(0, part2(file_to_vec_string(INPUT)));
     }
 }

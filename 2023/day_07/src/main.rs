@@ -218,7 +218,7 @@ fn cards_to_hand_type(data: BTreeMap<u8, u8>, is_part2: bool) -> HandType {
 
 fn parse_input(file: &str, is_part2: bool) -> Vec<Hand> {
     fs::read_to_string(file)
-        .expect(&format!("Cannot read the file {file}"))
+        .unwrap_or_else(|_| panic!("Cannot read the file {file}"))
         .lines()
         .map(|line| {
             let (cards, bid) = line.trim().split_once(' ').unwrap();

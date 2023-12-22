@@ -118,7 +118,7 @@ fn part2(data: (Vec<Direction>, Network), start: char, end: char) -> usize {
 }
 
 fn parse_input(file: &str) -> (Vec<Direction>, Network) {
-    let data = fs::read_to_string(file).expect(&format!("Cannot read the file {file}"));
+    let data = fs::read_to_string(file).unwrap_or_else(|_| panic!("Cannot read the file {file}"));
     let (directions, data) = data.split_once("\n\n").unwrap();
 
     // Directions
