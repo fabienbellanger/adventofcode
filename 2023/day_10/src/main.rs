@@ -212,26 +212,25 @@ impl Grid {
         let loop_area = self.loop_area();
         let boundary_points_count = self.main_loop.len();
 
-        dbg!(loop_area, boundary_points_count);
-
         loop_area - (boundary_points_count / 2) + 1
     }
 
     fn loop_area(&self) -> usize {
-        for t in self.main_loop.iter() {
-            println!("{t}");
+        let mut s = 0isize;
+        let loop_length = self.main_loop.len();
+        for i in 0..loop_length {
+            s += self.main_loop[i % loop_length].point.x * self.main_loop[(i + 1) % loop_length].point.y
+                - self.main_loop[(i + 1) % loop_length].point.x * self.main_loop[i % loop_length].point.y;
         }
 
-        // s n'est pas OK, il n'est pas idempotent :(
-        // Actuellement : p_first * p_first+1 ... p_last-1 * p_last
-        // Il manque p_first * p_last
-        let s: isize = self
-            .main_loop
-            .windows(2)
-            .map(|pair| pair[0].point.x * pair[1].point.y - pair[1].point.x * pair[0].point.y)
-            .inspect(|v| println!("{v}"))
-            .sum();
-        dbg!(s);
+        if s < 0 {
+            let main_loop = self.main_loop.iter().rev().collect::<Vec<_>>();
+            s = 0;
+            for i in 0..loop_length {
+                s += main_loop[i % loop_length].point.x * main_loop[(i + 1) % loop_length].point.y
+                    - main_loop[(i + 1) % loop_length].point.x * main_loop[i % loop_length].point.y;
+            }
+        }
 
         s as usize / 2
     }
@@ -321,9 +320,9 @@ mod tests {
 
     #[test]
     fn test_part2() {
-        // assert_eq!(4, part2(parse_input(TEST_3)));
+        assert_eq!(4, part2(parse_input(TEST_3)));
         assert_eq!(8, part2(parse_input(TEST_4)));
-        // assert_eq!(10, part2(parse_input(TEST_5)));
-        // assert_eq!(0, part2(parse_input(INPUT)));
+        assert_eq!(10, part2(parse_input(TEST_5)));
+        assert_eq!(269, part2(parse_input(INPUT)));
     }
 }
