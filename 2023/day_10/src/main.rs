@@ -2,6 +2,7 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::Formatter;
 use std::{fmt, fs};
+use utils::point::Point;
 
 const INPUT: &str = "input.txt";
 const DIRECTIONS: [Direction; 4] = [Direction::Right, Direction::Down, Direction::Left, Direction::Up];
@@ -112,18 +113,6 @@ impl Tile {
             },
             _ => vec![],
         }
-    }
-}
-
-#[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
-struct Point {
-    x: isize,
-    y: isize,
-}
-
-impl Point {
-    fn new(x: isize, y: isize) -> Self {
-        Self { x, y }
     }
 }
 
