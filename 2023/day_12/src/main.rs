@@ -107,7 +107,13 @@ impl Record {
                         break;
                     }
 
-                    // let mut new_case = case;
+                    let possible_ko = &case[current..current + n];
+                    println!("      possible_ko: {:?}", possible_ko);
+                    if !possible_ko.iter().all(|&s| s == Symbol::Unknown || s == Symbol::KO) {
+                        continue;
+                    }
+                    println!("      possible_ko ok");
+                    // let mut new_case = case.clone();
 
                     if i == last_cond {
                         // Last condition
