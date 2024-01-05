@@ -120,7 +120,7 @@ fn process(data: Vec<Point>, step: isize) -> usize {
     for (i, p) in universe.galaxies.iter().enumerate() {
         for (j, q) in universe.galaxies.iter().enumerate() {
             if i < j {
-                s += p.manhattan_distance(&q);
+                s += p.manhattan_distance(q);
             }
         }
     }
