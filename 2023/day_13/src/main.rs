@@ -99,7 +99,6 @@ impl Grid {
         let mut current = Vec::new();
         let mut y_reflections = Vec::new();
         let mut parts = Vec::new();
-        let mut chances = 1;
 
         for y in 0..self.height {
             let mut tmp = Vec::new();
@@ -112,15 +111,39 @@ impl Grid {
 
             // Number of differences between two lines
             let difference = Self::difference_lines_count(&current, &tmp);
-            if difference <= 1 {
-                y_reflections.push((y - 1, difference));
+            if difference <= 1 && !current.is_empty() {
+                y_reflections.push(y - 1);
             }
 
             parts.push(tmp.clone());
             current = tmp;
         }
 
-        dbg!(&y_reflections);
+        for y in y_reflections {
+            let delta = min(y + 1, self.height - y - 1);
+
+            let mut part1 = parts[y + 1 - delta..y + 1].to_vec();
+            let part2 = parts[y + 1..y + delta + 1].to_vec();
+            part1.reverse();
+
+            //dbg!(y, &part1, &part2);
+
+            let mut smudge = 0;
+            for i in 0..delta {
+                let diff = Self::difference_lines_count(&part1[i], &part2[i]);
+                //dbg!(diff);
+                smudge += diff;
+
+                if smudge > 1 {
+                    break;
+                }
+            }
+            //dbg!(smudge);
+
+            if smudge == 1 {
+                return Some(y);
+            }
+        }
 
         None
     }
@@ -140,14 +163,15 @@ fn part1(data: Vec<Grid>) -> usize {
     result
 }
 
+// 33100 is too low
 fn part2(data: Vec<Grid>) -> usize {
     let mut result = 0;
 
-    for (i, grid) in data.iter().enumerate() {
+    for (_, grid) in data.iter().enumerate() {
         result += if let Some(row) = grid.find_reflexion_line() {
             (row + 1) * 100
         } else {
-            0 // panic!("invalid reflection line at {i}")
+            0
         };
     }
 
@@ -201,6 +225,6 @@ mod tests {
     #[test]
     fn test_part2() {
         assert_eq!(400, part2(parse_input(TEST)));
-        // assert_eq!(0, part2(parse_input(INPUT)));
+        assert_eq!(0, part2(parse_input(INPUT)));
     }
 }
