@@ -23,7 +23,7 @@ cargo run
 - [x] Day 10: Rust (Help part 2 with 2 formulas)
 - [x] Day 11: Rust
 - [ ] Day 12: Rust
-- [ ] Day 13: Rust
+- [x] Day 13: Rust
 - [ ] Day 14: Rust
 - [x] Day 15: Rust
 - [ ] Day 16: Rust

@@ -18,130 +18,69 @@ struct Grid {
 }
 
 impl Grid {
-    fn find_horizontal_reflection(&self) -> Option<usize> {
-        let mut current = Vec::new();
-        let mut y_reflections = Vec::new();
-        let mut parts = Vec::new();
-
-        for y in 0..self.height {
-            let mut tmp = Vec::new();
-            for point in self.points.iter() {
-                if point.y == y as isize {
-                    tmp.push(point.x);
-                }
-            }
-
-            if current == tmp {
-                y_reflections.push(y - 1);
-            }
-            parts.push(tmp.clone());
-            current = tmp;
-        }
-
-        for y_reflection in y_reflections {
-            let delta = min(y_reflection + 1, self.height - y_reflection - 1);
-
-            let part1 = parts[y_reflection + 1 - delta..y_reflection + 1].to_vec();
-            let mut part2 = parts[y_reflection + 1..y_reflection + delta + 1].to_vec();
-            part2.reverse();
-
-            if part1 == part2 {
-                return Some(y_reflection);
-            }
-        }
-
-        None
-    }
-
-    fn find_vertical_reflection(&self) -> Option<usize> {
-        let mut current = Vec::new();
-        let mut x_reflections = Vec::new();
-        let mut parts = Vec::new();
-
-        for x in 0..self.width {
-            let mut tmp = Vec::new();
-            for point in self.points.iter() {
-                if point.x == x as isize {
-                    tmp.push(point.y);
-                }
-            }
-
-            if current == tmp {
-                x_reflections.push(x - 1);
-            }
-            parts.push(tmp.clone());
-            current = tmp;
-        }
-
-        for x_reflection in x_reflections {
-            let delta = min(x_reflection + 1, self.width - x_reflection - 1);
-
-            let part1 = parts[x_reflection + 1 - delta..x_reflection + 1].to_vec();
-            let mut part2 = parts[x_reflection + 1..x_reflection + delta + 1].to_vec();
-            part2.reverse();
-
-            if part1 == part2 {
-                return Some(x_reflection);
-            }
-        }
-
-        None
-    }
-
     fn difference_lines_count(l1: &[isize], l2: &[isize]) -> usize {
-        let s1: HashSet<_> = l1.into_iter().collect();
-        let s2: HashSet<_> = l2.into_iter().collect();
+        let s1: HashSet<_> = l1.iter().collect();
+        let s2: HashSet<_> = l2.iter().collect();
 
         s1.symmetric_difference(&s2).count()
     }
 
-    fn find_reflexion_line(&self) -> Option<usize> {
+    fn find_reflection(&self, is_vertical: bool, is_part_1: bool) -> Option<usize> {
         let mut current = Vec::new();
-        let mut y_reflections = Vec::new();
+        let mut reflections = Vec::new();
         let mut parts = Vec::new();
+        let bound = match is_vertical {
+            false => self.height,
+            true => self.width,
+        };
+        let difference_max = match is_part_1 {
+            false => 1,
+            true => 0,
+        };
 
-        for y in 0..self.height {
+        for i in 0..bound {
             let mut tmp = Vec::new();
-
             for point in self.points.iter() {
-                if point.y == y as isize {
+                if !is_vertical && point.y == i as isize {
                     tmp.push(point.x);
+                } else if is_vertical && point.x == i as isize {
+                    tmp.push(point.y);
                 }
             }
 
-            // Number of differences between two lines
             let difference = Self::difference_lines_count(&current, &tmp);
-            if difference <= 1 && !current.is_empty() {
-                y_reflections.push(y - 1);
+            if difference <= difference_max && !current.is_empty() {
+                reflections.push(i - 1);
             }
 
             parts.push(tmp.clone());
             current = tmp;
         }
 
-        for y in y_reflections {
-            let delta = min(y + 1, self.height - y - 1);
+        for reflection in reflections {
+            let delta = min(reflection + 1, bound - reflection - 1);
 
-            let mut part1 = parts[y + 1 - delta..y + 1].to_vec();
-            let part2 = parts[y + 1..y + delta + 1].to_vec();
+            let mut part1 = parts[reflection + 1 - delta..reflection + 1].to_vec();
+            let part2 = parts[reflection + 1..reflection + delta + 1].to_vec();
             part1.reverse();
 
-            //dbg!(y, &part1, &part2);
+            if is_part_1 && part1 == part2 {
+                return Some(reflection);
+            } else if !is_part_1 {
+                let mut smudge = 0;
+                for j in 0..delta {
+                    let diff = Self::difference_lines_count(&part1[j], &part2[j]);
 
-            let mut smudge = 0;
-            for i in 0..delta {
-                let diff = Self::difference_lines_count(&part1[i], &part2[i]);
-                //dbg!(diff);
-                smudge += diff;
+                    smudge += diff;
 
-                if smudge > 1 {
-                    break;
+                    if smudge > 1 {
+                        break;
+                    }
                 }
-            }
-            //dbg!(smudge);
 
-            if smudge == 1 {
-                return Some(y);
+                if smudge == 1 {
+                    return Some(reflection);
+                }
             }
         }
 
@@ -149,11 +88,15 @@ impl Grid {
     }
 }
 
-fn part1(data: Vec<Grid>) -> usize {
+fn process(data: Vec<Grid>, is_part_1: bool) -> usize {
     let mut result = 0;
 
     for (i, grid) in data.iter().enumerate() {
-        result += match (grid.find_horizontal_reflection(), grid.find_vertical_reflection()) {
+        let r = match is_part_1 {
+            true => (grid.find_reflection(false, true), grid.find_reflection(true, true)),
+            false => (grid.find_reflection(false, false), grid.find_reflection(true, false)),
+        };
+        result += match r {
             (Some(row), None) => (row + 1) * 100,
             (None, Some(col)) => col + 1,
             (r, c) => panic!("invalid reflection {r:?} {c:?} at {i}"),
@@ -163,19 +106,12 @@ fn part1(data: Vec<Grid>) -> usize {
     result
 }
 
-// 33100 is too low
+fn part1(data: Vec<Grid>) -> usize {
+    process(data, true)
+}
+
 fn part2(data: Vec<Grid>) -> usize {
-    let mut result = 0;
-
-    for (_, grid) in data.iter().enumerate() {
-        result += if let Some(row) = grid.find_reflexion_line() {
-            (row + 1) * 100
-        } else {
-            0
-        };
-    }
-
-    result
+    process(data, false)
 }
 
 fn parse_input(file: &str) -> Vec<Grid> {
@@ -183,7 +119,6 @@ fn parse_input(file: &str) -> Vec<Grid> {
         .unwrap_or_else(|_| panic!("Cannot read the file {file}"))
         .trim()
         .split("\n\n")
-        .into_iter()
         .map(|grid| {
             let mut width = 0;
             let mut height = 0;
@@ -192,7 +127,7 @@ fn parse_input(file: &str) -> Vec<Grid> {
                 .trim()
                 .lines()
                 .enumerate()
-                .map(|(y, line)| {
+                .flat_map(|(y, line)| {
                     if y == 0 {
                         width = line.trim().len();
                     }
@@ -204,7 +139,6 @@ fn parse_input(file: &str) -> Vec<Grid> {
                         .map(|(x, _)| Point::new(x as isize, y as isize))
                         .collect::<Vec<_>>()
                 })
-                .flatten()
                 .collect::<Vec<_>>();
             Grid { points, width, height }
         })
@@ -225,6 +159,6 @@ mod tests {
     #[test]
     fn test_part2() {
         assert_eq!(400, part2(parse_input(TEST)));
-        assert_eq!(0, part2(parse_input(INPUT)));
+        assert_eq!(33_438, part2(parse_input(INPUT)));
     }
 }
