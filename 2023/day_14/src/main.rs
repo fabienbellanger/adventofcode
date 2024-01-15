@@ -21,9 +21,28 @@ impl From<char> for Rock {
     }
 }
 
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+enum Item {
+    Rounded,
+    CubeShaped,
+    Empty,
+}
+
+impl From<char> for Item {
+    fn from(value: char) -> Self {
+        match value {
+            '#' => Self::CubeShaped,
+            'O' => Self::Rounded,
+            '.' => Self::Empty,
+            v => panic!("invalid input: {v}"),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 struct Grid {
     rocks: HashMap<Point, Rock>,
+    items: Vec<Vec<Item>>,
     width: usize,
     height: usize,
 }
@@ -33,13 +52,18 @@ impl fmt::Display for Grid {
         let mut lines = String::new();
         for y in 0..self.height {
             for x in 0..self.width {
-                if let Some(rock) = self.rocks.get(&Point::new(x as isize, y as isize)) {
-                    match rock {
-                        Rock::Rounded => lines.push('O'),
-                        Rock::CubeShaped => lines.push('#'),
-                    }
-                } else {
-                    lines.push('.');
+                // if let Some(rock) = self.rocks.get(&Point::new(x as isize, y as isize)) {
+                //     match rock {
+                //         Rock::Rounded => lines.push('O'),
+                //         Rock::CubeShaped => lines.push('#'),
+                //     }
+                // } else {
+                //     lines.push('.');
+                // }
+                match self.items[y][x] {
+                    Item::Empty => lines.push('.'),
+                    Item::Rounded => lines.push('0'),
+                    Item::CubeShaped => lines.push('#'),
                 }
             }
             lines.push('\n');
@@ -60,6 +84,20 @@ impl Grid {
                 Some(self.height as isize - point.y)
             })
             .sum()
+    }
+
+    fn total_load_items(&self) -> isize {
+        let mut total = 0;
+
+        for y in 0..self.height {
+            for x in 0..self.width {
+                if self.items[y][x] == Item::Rounded {
+                    total += self.height as isize - y as isize;
+                }
+            }
+        }
+
+        total
     }
 
     fn move_rocks_north(&mut self) {
@@ -88,6 +126,32 @@ impl Grid {
             }
         }
     }
+
+    fn move_rocks_north_items(&mut self) {
+        for x in 0..self.width {
+            let mut blocked_at = -1;
+
+            for y in 0..self.height {
+                let item = self.items[y][x].clone();
+
+                if item == Item::Empty {
+                    continue;
+                }
+
+                if item == Item::CubeShaped {
+                    blocked_at = y as isize;
+                    continue;
+                }
+
+                if item == Item::Rounded && y as isize > blocked_at {
+                    blocked_at += 1;
+
+                    self.items[y][x] = Item::Empty;
+                    self.items[blocked_at as usize][x] = Item::Rounded;
+                }
+            }
+        }
+    }
 }
 
 fn main() {
@@ -96,21 +160,27 @@ fn main() {
 }
 
 fn part1(mut data: Grid) -> isize {
-    data.move_rocks_north();
-    data.total_load()
+    println!("{}", &data);
+    data.move_rocks_north_items();
+    println!("{}", &data);
+    data.total_load_items()
 }
 
 fn part2(mut data: Grid) -> isize {
-    // for _ in 0..1_000_000 {
-    //     data.move_rocks_north();
-    // }
-    // data.total_load()
-    todo!()
+    for _ in 0..1_000_000_000 {
+        data.move_rocks_north_items();
+        data.move_rocks_north_items();
+        data.move_rocks_north_items();
+        data.move_rocks_north_items();
+    }
+    data.total_load_items()
+    // todo!()
 }
 
 fn parse_input(file: &str) -> Grid {
     let mut width = 0;
     let mut height = 0;
+    let mut items = Vec::new();
 
     let rocks = fs::read_to_string(file)
         .unwrap_or_else(|_| panic!("Cannot read the file {file}"))
@@ -123,9 +193,13 @@ fn parse_input(file: &str) -> Grid {
             }
             height += 1;
 
+            items.push(Vec::new());
+
             line.chars()
                 .enumerate()
                 .filter_map(|(x, c)| {
+                    items[y].push(Item::from(c));
+
                     if c != '.' {
                         let point = Point::new(x as isize, y as isize);
                         let rock = Rock::from(c);
@@ -139,7 +213,12 @@ fn parse_input(file: &str) -> Grid {
         })
         .collect::<HashMap<Point, Rock>>();
 
-    Grid { rocks, width, height }
+    Grid {
+        rocks,
+        items,
+        width,
+        height,
+    }
 }
 
 #[cfg(test)]
