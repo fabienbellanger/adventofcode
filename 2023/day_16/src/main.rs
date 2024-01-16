@@ -1,25 +1,33 @@
+use std::collections::{HashMap, HashSet};
 use std::fmt::Formatter;
 use std::{fmt, fs};
+use utils::point::Point;
 
 const INPUT: &str = "input.txt";
 
+#[derive(Debug, Clone, PartialEq)]
+enum Direction {
+    North,
+    South,
+    West,
+    East,
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum Element {
-    Miror1,
-    Miror2,
+    Slash,
+    Backslash,
     HSplitter,
     VSplitter,
-    Empty,
 }
 
 impl From<char> for Element {
     fn from(value: char) -> Self {
         match value {
-            '/' => Self::Miror1,
-            '\\' => Self::Miror2,
+            '/' => Self::Slash,
+            '\\' => Self::Backslash,
             '|' => Self::VSplitter,
             '-' => Self::HSplitter,
-            '.' => Self::Empty,
             v => panic!("invalid input: {v}"),
         }
     }
@@ -28,11 +36,10 @@ impl From<char> for Element {
 impl From<Element> for char {
     fn from(value: Element) -> Self {
         match value {
-            Element::Miror1 => '/',
-            Element::Miror2 => '\\',
+            Element::Slash => '/',
+            Element::Backslash => '\\',
             Element::VSplitter => '|',
             Element::HSplitter => '-',
-            Element::Empty => '.',
         }
     }
 }
@@ -40,7 +47,8 @@ impl From<Element> for char {
 #[derive(Debug, Clone)]
 struct Grid {
     size: usize,
-    elements: Vec<Vec<Element>>,
+    elements: HashMap<Point, Element>,
+    energized: HashSet<Point>,
 }
 
 impl fmt::Display for Grid {
@@ -48,11 +56,24 @@ impl fmt::Display for Grid {
         let mut lines = String::new();
         for y in 0..self.size {
             for x in 0..self.size {
-                lines.push(self.elements[y][x].into());
+                let p = Point::new(x as isize, y as isize);
+                if let Some(e) = self.elements.get(&p) {
+                    lines.push((*e).into());
+                } else if self.energized.get(&p).is_some() {
+                    lines.push('#');
+                } else {
+                    lines.push('.');
+                }
             }
             lines.push('\n');
         }
         write!(f, "{lines}")
+    }
+}
+
+impl Grid {
+    fn next_moves(&self, current: Point, direction: Direction) {
+        let directions = [(0, 1), (-1, 0), (1, 0), (0, -1)];
     }
 }
 
@@ -73,7 +94,7 @@ fn part2(data: Grid) -> usize {
 
 fn parse_input(file: &str) -> Grid {
     let mut size = 0;
-    let mut elements = Vec::new();
+    let mut elements = HashMap::new();
 
     let data = fs::read_to_string(file).unwrap_or_else(|_| panic!("Cannot read the file {file}"));
 
@@ -82,14 +103,18 @@ fn parse_input(file: &str) -> Grid {
             size = line.len();
         }
 
-        elements.push(Vec::new());
-
-        for c in line.chars() {
-            elements[y].push(Element::from(c));
+        for (x, c) in line.chars().enumerate() {
+            if c != '.' {
+                elements.insert(Point::new(x as isize, y as isize), Element::from(c));
+            }
         }
     }
 
-    Grid { elements, size }
+    Grid {
+        elements,
+        size,
+        energized: HashSet::new(),
+    }
 }
 
 #[cfg(test)]
