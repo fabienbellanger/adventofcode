@@ -24,7 +24,7 @@ cargo run
 - [x] Day 11: Rust
 - [ ] Day 12: Rust
 - [x] Day 13: Rust
-- [ ] Day 14: Rust
+- [x] Day 14: Rust (Help part 2 to use the cycle)
 - [x] Day 15: Rust
 - [ ] Day 16: Rust
 - [ ] Day 17: Rust
