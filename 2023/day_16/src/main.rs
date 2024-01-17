@@ -72,8 +72,20 @@ impl fmt::Display for Grid {
 }
 
 impl Grid {
-    fn next_moves(&self, current: Point, direction: Direction) {
-        let directions = [(0, 1), (-1, 0), (1, 0), (0, -1)];
+    fn in_bounds(&self, point: Point) -> bool {
+        todo!()
+    }
+
+    fn next_moves(&self, current: Point, direction: Direction) -> Vec<(Point, Direction)> {
+        let mut moves = Vec::new();
+
+        let current_element = self.elements.get(&current);
+        match current_element {
+            Some(element) => todo!(),
+            None => todo!(),
+        }
+
+        moves
     }
 }
 
