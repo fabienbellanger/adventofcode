@@ -188,18 +188,10 @@ fn part2(data: Grid) -> usize {
                     let east_value = data.process((point.clone(), Direction::East));
                     let west_value = data.process((point.clone(), Direction::West));
 
-                    if north_value > max {
-                        max = north_value;
-                    }
-                    if south_value > max {
-                        max = south_value;
-                    }
-                    if east_value > max {
-                        max = east_value;
-                    }
-                    if west_value > max {
-                        max = west_value;
-                    }
+                    max = *[north_value, south_value, east_value, west_value, max]
+                        .iter()
+                        .max()
+                        .unwrap_or(&max);
                 }
             }
         }
