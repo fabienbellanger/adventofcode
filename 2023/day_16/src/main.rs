@@ -1,11 +1,11 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::Formatter;
 use std::{fmt, fs};
 use utils::point::Point;
 
 const INPUT: &str = "input.txt";
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Direction {
     North,
     South,
@@ -72,20 +72,94 @@ impl fmt::Display for Grid {
 }
 
 impl Grid {
-    fn in_bounds(&self, point: Point) -> bool {
-        todo!()
+    fn in_bounds(&self, point: &Point) -> bool {
+        point.x >= 0 && point.x < self.size as isize && point.y >= 0 && point.y < self.size as isize
     }
 
-    fn next_moves(&self, current: Point, direction: Direction) -> Vec<(Point, Direction)> {
+    fn move_point(&self, point: &Point, direction: &Direction) -> Option<Point> {
+        let next = match direction {
+            Direction::North => Point::new(point.x, point.y - 1),
+            Direction::South => Point::new(point.x, point.y + 1),
+            Direction::East => Point::new(point.x + 1, point.y),
+            Direction::West => Point::new(point.x - 1, point.y),
+        };
+
+        if self.in_bounds(&next) {
+            return Some(next);
+        }
+        None
+    }
+
+    fn add_move(&self, moves: &mut Vec<(Point, Direction)>, current: &Point, direction: &Direction) {
+        if let Some(point) = self.move_point(current, direction) {
+            moves.push((point, direction.clone()));
+        }
+    }
+
+    fn next_moves(&self, current: &Point, direction: &Direction) -> Vec<(Point, Direction)> {
         let mut moves = Vec::new();
 
-        let current_element = self.elements.get(&current);
+        let current_element = self.elements.get(current);
         match current_element {
-            Some(element) => todo!(),
-            None => todo!(),
+            Some(element) => match element {
+                Element::Backslash => match direction {
+                    Direction::North => self.add_move(&mut moves, current, &Direction::West),
+                    Direction::South => self.add_move(&mut moves, current, &Direction::East),
+                    Direction::East => self.add_move(&mut moves, current, &Direction::South),
+                    Direction::West => self.add_move(&mut moves, current, &Direction::North),
+                },
+                Element::Slash => match direction {
+                    Direction::North => self.add_move(&mut moves, current, &Direction::East),
+                    Direction::South => self.add_move(&mut moves, current, &Direction::West),
+                    Direction::East => self.add_move(&mut moves, current, &Direction::North),
+                    Direction::West => self.add_move(&mut moves, current, &Direction::South),
+                },
+                Element::HSplitter => match direction {
+                    Direction::North | Direction::South => {
+                        self.add_move(&mut moves, current, &Direction::East);
+                        self.add_move(&mut moves, current, &Direction::West);
+                    }
+                    _ => self.add_move(&mut moves, current, direction),
+                },
+                Element::VSplitter => match direction {
+                    Direction::East | Direction::West => {
+                        self.add_move(&mut moves, current, &Direction::North);
+                        self.add_move(&mut moves, current, &Direction::South);
+                    }
+                    _ => self.add_move(&mut moves, current, direction),
+                },
+            },
+            None => self.add_move(&mut moves, current, direction),
         }
 
         moves
+    }
+
+    fn process(&self, start: (Point, Direction)) -> usize {
+        let mut visited = HashSet::new();
+        let mut to_visit = VecDeque::new();
+        let mut energized = self.energized.clone();
+
+        visited.insert(start.clone());
+        energized.insert(start.0.clone());
+        let next = self.next_moves(&start.0, &start.1);
+        for p in next {
+            to_visit.push_back(p);
+        }
+
+        while let Some(current) = to_visit.pop_front() {
+            if !visited.contains(&current) {
+                visited.insert(current.clone());
+                energized.insert(current.0.clone());
+
+                let next = self.next_moves(&current.0, &current.1);
+                for p in next {
+                    to_visit.push_back(p);
+                }
+            }
+        }
+
+        energized.len()
     }
 }
 
@@ -95,13 +169,43 @@ fn main() {
 }
 
 fn part1(data: Grid) -> usize {
-    println!("{}", &data);
-
-    0
+    data.process((Point::new(0, 0), Direction::East))
 }
 
+// 7746 => too high
 fn part2(data: Grid) -> usize {
-    todo!()
+    let mut max = 0;
+
+    for y in 0..data.size {
+        for x in 0..data.size {
+            // Only bounds
+            if y == 0 || y == data.size - 1 || x == 0 || x == data.size - 1 {
+                let point = Point::new(x as isize, y as isize);
+
+                if !data.elements.contains_key(&point) {
+                    let north_value = data.process((point.clone(), Direction::North));
+                    let south_value = data.process((point.clone(), Direction::South));
+                    let east_value = data.process((point.clone(), Direction::East));
+                    let west_value = data.process((point.clone(), Direction::West));
+
+                    if north_value > max {
+                        max = north_value;
+                    }
+                    if south_value > max {
+                        max = south_value;
+                    }
+                    if east_value > max {
+                        max = east_value;
+                    }
+                    if west_value > max {
+                        max = west_value;
+                    }
+                }
+            }
+        }
+    }
+
+    max
 }
 
 fn parse_input(file: &str) -> Grid {
@@ -138,12 +242,12 @@ mod tests {
     #[test]
     fn test_part1() {
         assert_eq!(46, part1(parse_input(TEST)));
-        // assert_eq!(0, part1(parse_input(INPUT)));
+        assert_eq!(7_517, part1(parse_input(INPUT)));
     }
 
     #[test]
     fn test_part2() {
-        // assert_eq!(0, part2(parse_input(TEST)));
-        // assert_eq!(0, part2(parse_input(INPUT)));
+        assert_eq!(51, part2(parse_input(TEST)));
+        assert_eq!(7_741, part2(parse_input(INPUT)));
     }
 }
