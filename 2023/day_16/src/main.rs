@@ -172,7 +172,6 @@ fn part1(data: Grid) -> usize {
     data.process((Point::new(0, 0), Direction::East))
 }
 
-// 7746 => too high
 fn part2(data: Grid) -> usize {
     let mut max = 0;
 
